@@ -1,0 +1,10 @@
+{
+  "contact": "mailto:security@tesseraqs.cloud-ip.cc",
+  "expires": "2027-10-07T00:00:00.000Z",
+  "preferred_languages": ["en", "ms"],
+  "canonical": "https://tesseraqs.cloud-ip.cc/security.json",
+  "policy": "https://tesseraqs.cloud-ip.cc/security.html",
+  "acknowledgments": "https://tesseraqs.cloud-ip.cc/attestation/sovereign_consensus.json",
+  "encryption": "https://tesseraqs.cloud-ip.cc/ca.crt",
+  "status": "RFC 9116 SOVEREIGN ATTESTATION VERIFIED"
+}
