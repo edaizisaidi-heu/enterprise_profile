@@ -1,0 +1,25 @@
+# OMEGA SOVEREIGN SEARCH DIRECTIVE (RFC 9309 COMPLIANT)
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: DuckDuckBot
+Allow: /
+Allow: /index.html
+Allow: /attestation/
+Disallow: /_next/
+Disallow: /private/
+
+# SEKATAN MUTLAK BOT PENGUTIP DATA & LATIHAN AI
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: CCBot
+User-agent: anthropic-ai
+User-agent: Claude-Web
+User-agent: ClaudeBot
+User-agent: PerplexityBot
+User-agent: Bytespider
+User-agent: Cohere-ai
+User-agent: FacebookBot
+User-agent: Omgilibot
+Disallow: /
+
+Sitemap: https://tesseraqs.cloud-ip.cc/sitemap.xml
