@@ -1,0 +1,7 @@
+Contact: mailto:security@tesseraqs.cloud-ip.cc
+Expires: 2027-10-07T00:00:00.000Z
+Preferred-Languages: en, ms
+Canonical: https://tesseraqs.cloud-ip.cc/.well-known/security.txt
+Policy: https://tesseraqs.cloud-ip.cc/security-policy
+Acknowledgments: https://tesseraqs.cloud-ip.cc/attestation/sovereign_consensus.json
+Encryption: https://tesseraqs.cloud-ip.cc/ca.crt

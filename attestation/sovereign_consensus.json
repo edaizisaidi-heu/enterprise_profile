@@ -1,0 +1,26 @@
+{
+  "timestamp": 1791325549.545082,
+  "node": "Teluk Intan Operational Base",
+  "tls_version": "TLS 1.3",
+  "zkp_enforced": true,
+  "records": [
+    {
+      "role": "Chief Technology Officer (CTO)",
+      "sender": "Auditor Teknikal",
+      "zkp_status": "TRUE (LOCAL-AUTONOMOUS)",
+      "resolution": "[RESOLUSI KEDAULATAN AUTONOMI TEMPATAN \u2014 TELUK INTAN NODE]\nMasa Sah: 2026-10-07 06:25:33\nPeranan AI: Chief Technology Officer (CTO)\nStatus Kriptografi: DISAHKAN VIA LITAR ZKP (corporate_auth)\nKetetapa"
+    },
+    {
+      "role": "Corporate Secretary & Legal",
+      "sender": "Penasihat Undang-Undang",
+      "zkp_status": "TRUE (LOCAL-AUTONOMOUS)",
+      "resolution": "[RESOLUSI KEDAULATAN AUTONOMI TEMPATAN \u2014 TELUK INTAN NODE]\nMasa Sah: 2026-10-07 06:25:41\nPeranan AI: Corporate Secretary & Legal\nStatus Kriptografi: DISAHKAN VIA LITAR ZKP (corporate_auth)\nKetetapan: "
+    },
+    {
+      "role": "The Great Scribe",
+      "sender": "Pencatat Kedaulatan",
+      "zkp_status": "TRUE (LOCAL-AUTONOMOUS)",
+      "resolution": "[RESOLUSI KEDAULATAN AUTONOMI TEMPATAN \u2014 TELUK INTAN NODE]\nMasa Sah: 2026-10-07 06:25:49\nPeranan AI: The Great Scribe\nStatus Kriptografi: DISAHKAN VIA LITAR ZKP (corporate_auth)\nKetetapan: Berdasarkan"
+    }
+  ]
+}
