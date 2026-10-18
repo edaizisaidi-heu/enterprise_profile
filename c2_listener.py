@@ -7,12 +7,22 @@ import os
 import glob
 import re
 import subprocess
+import logging
+from typing import Dict, Any
 
+HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", 5000))
 MODULES_DIR = os.environ.get("MODULES_DIR", os.path.expanduser("~/workspace/modules"))
+MAX_PAYLOAD_SIZE = int(os.environ.get("MAX_PAYLOAD_SIZE", 1024 * 1024))  # 1 MB default limit
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger("c2_listener")
+
 
 class C2Handler(http.server.BaseHTTPRequestHandler):
-    def _set_headers(self, status=200):
+    """HTTP Request Handler for OMEGA C2 Telemetry Bridge."""
+
+    def _set_headers(self, status: int = 200) -> None:
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -20,10 +30,10 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
 
-    def do_OPTIONS(self):
+    def do_OPTIONS(self) -> None:
         self._set_headers(204)
 
-    def do_GET(self):
+    def do_GET(self) -> None:
         if self.path in ["/health", "/status"]:
             self._set_headers(200)
             self.wfile.write(json.dumps({
@@ -35,13 +45,21 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
             self._set_headers(404)
             self.wfile.write(json.dumps({"error": "Endpoint tidak wujud"}).encode("utf-8"))
 
-    def do_POST(self):
+    def do_POST(self) -> None:
         try:
             if self.path == "/omni-listener":
                 try:
                     length = int(self.headers.get("Content-Length", 0))
                 except (ValueError, TypeError):
                     length = 0
+
+                if length > MAX_PAYLOAD_SIZE:
+                    self._set_headers(413)
+                    self.wfile.write(json.dumps({
+                        "error": "Payload Terlalu Besar",
+                        "message": f"Saiz muatan melebihi had maksimum {MAX_PAYLOAD_SIZE} bait."
+                    }).encode("utf-8"))
+                    return
 
                 body = self.rfile.read(length).decode("utf-8") if length > 0 else ""
                 try:
@@ -53,7 +71,7 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
                     payload = {"raw": payload}
 
                 directive = str(payload.get("directive", "")).lower()
-                response_data = {
+                response_data: Dict[str, Any] = {
                     "status": "ACK",
                     "received": payload,
                     "action": "TELEMETRY_LOGGED",
@@ -129,14 +147,17 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
                 self._set_headers(404)
                 self.wfile.write(json.dumps({"error": "Endpoint tidak wujud"}).encode("utf-8"))
         except Exception as e:
+            logger.error("Error processing POST request: %s", str(e))
             self._set_headers(500)
             self.wfile.write(json.dumps({"error": "Ralat Pelayan Dalaman", "details": str(e)}).encode("utf-8"))
 
+
 if __name__ == "__main__":
-    server = http.server.HTTPServer(("127.0.0.1", PORT), C2Handler)
-    print(f"[*] OMEGA C2 Listener running on port {PORT}...")
+    server_class = getattr(http.server, "ThreadingHTTPServer", http.server.HTTPServer)
+    server = server_class((HOST, PORT), C2Handler)
+    logger.info("OMEGA C2 Listener running on %s:%d...", HOST, PORT)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\n[*] Server stopped cleanly.")
+        logger.info("Server stopped cleanly.")
         server.server_close()

@@ -16,8 +16,8 @@ class TestC2Listener(unittest.TestCase):
         cls.old_modules_dir = c2_listener.MODULES_DIR
         c2_listener.MODULES_DIR = cls.temp_dir.name
 
-        # Start server in thread
-        cls.server = http.server.HTTPServer(("127.0.0.1", 5001), c2_listener.C2Handler)
+        server_class = getattr(http.server, "ThreadingHTTPServer", http.server.HTTPServer)
+        cls.server = server_class(("127.0.0.1", 5001), c2_listener.C2Handler)
         cls.server_thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
         cls.server_thread.start()
         cls.base_url = "http://127.0.0.1:5001"
@@ -121,6 +121,33 @@ class TestC2Listener(unittest.TestCase):
     def test_invalid_content_length(self):
         status, data, _ = self._send_post("/omni-listener", {"directive": "test"}, headers={"Content-Length": "invalid"})
         self.assertEqual(status, 200)
+
+    def test_payload_too_large(self):
+        old_limit = c2_listener.MAX_PAYLOAD_SIZE
+        try:
+            c2_listener.MAX_PAYLOAD_SIZE = 50  # set small limit for test
+            large_payload = {"directive": "x" * 100}
+            status, data, _ = self._send_post("/omni-listener", large_payload)
+            self.assertEqual(status, 413)
+            self.assertEqual(data.get("error"), "Payload Terlalu Besar")
+        finally:
+            c2_listener.MAX_PAYLOAD_SIZE = old_limit
+
+    def test_concurrent_requests(self):
+        results = []
+
+        def make_req():
+            status, data, _ = self._send_post("/omni-listener", {"directive": "concurrent request"})
+            results.append(status)
+
+        threads = [threading.Thread(target=make_req) for _ in range(5)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        self.assertEqual(len(results), 5)
+        self.assertTrue(all(s == 200 for s in results))
 
 if __name__ == "__main__":
     unittest.main()
