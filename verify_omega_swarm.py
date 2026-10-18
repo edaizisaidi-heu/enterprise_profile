@@ -1,8 +1,21 @@
 import urllib.request
 import json
+import os
 import sys
 
-URL = "http://127.0.0.1:5000/omni-listener"
+DEFAULT_PORT = os.environ.get("PORT", "5000")
+BASE_URL = os.environ.get("C2_BASE_URL", f"http://127.0.0.1:{DEFAULT_PORT}")
+URL = os.environ.get("C2_URL", f"{BASE_URL}/omni-listener")
+HEALTH_URL = f"{BASE_URL}/health"
+
+def check_health():
+    try:
+        req = urllib.request.Request(HEALTH_URL)
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return data.get("status") == "ONLINE"
+    except Exception:
+        return False
 
 def send_payload(payload):
     data = json.dumps(payload).encode("utf-8")
@@ -14,6 +27,11 @@ def send_payload(payload):
         return {"status": "ERROR", "message": str(e)}
 
 print("[*] Memulakan Pengesahan Mutlak Omega Swarm (C2)...")
+
+if check_health():
+    print(f"[Health Check] Server di {HEALTH_URL} disahkan ONLINE.")
+else:
+    print(f"[Health Check] Amaran: Health check ke {HEALTH_URL} tidak memulangkan status ONLINE. Meneruskan ujian telemetri...")
 
 # Ujian 1: Alpha Escalation Directive
 alpha_payload = {
