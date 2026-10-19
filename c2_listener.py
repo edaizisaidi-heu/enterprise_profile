@@ -29,7 +29,9 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({
                 "status": "ONLINE",
                 "service": "OMEGA_C2_LISTENER",
-                "version": "3.1.0"
+                "version": "3.2.0",
+                "node": "TELUK_INTAN_EDGE_01",
+                "architecture": "TesseraQS Core"
             }).encode("utf-8"))
         else:
             self._set_headers(404)
