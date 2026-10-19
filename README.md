@@ -9,7 +9,7 @@ Sistem jambatan telemetri C2 dan enjin eksekusi niat autonomi bagi **TesseraQS C
 ### Ciri-ciri Utama & Intent Matrix
 
 1. **GET `/health` / `/status`**:
-   - Memulangkan status kesihatan pelayan (`"status": "ONLINE"`).
+   - Memulangkan status kesihatan pelayan (`"status": "ONLINE"`, `"version": "3.2.0"` bersama metadata `"node"` dan `"architecture"`).
 2. **POST `/omni-listener`**:
    - **Pembersihan Modul Numerik Legasi** (`buang`, `padam`, `purge`, `delete` + `modul`): Menghapuskan fail modul legasi daripada `MODULES_DIR`.
    - **Pembaikan Pantas & Pematuhan Air-Gap** (`baiki`, `repair`, `heal`, `fix`, `audit`, `airgap`): Memateri pautan CDN kepada sumber tempatan `/tailwind.js` pada `index.html` dan menjalankan audit pengesahan L5.
