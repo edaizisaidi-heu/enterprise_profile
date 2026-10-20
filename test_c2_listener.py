@@ -79,6 +79,9 @@ class TestC2Listener(unittest.TestCase):
             data = json.loads(resp.read().decode("utf-8"))
             self.assertEqual(data.get("status"), "ONLINE")
             self.assertEqual(data.get("service"), "OMEGA_C2_LISTENER")
+            self.assertEqual(data.get("version"), "3.2.0")
+            self.assertEqual(data.get("node"), "TELUK_INTAN_EDGE_01")
+            self.assertEqual(data.get("architecture"), "TesseraQS Core")
 
     def test_options_cors(self):
         req = urllib.request.Request(f"{self.base_url}/omni-listener", method="OPTIONS")

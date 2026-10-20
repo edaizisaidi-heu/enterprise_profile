@@ -57,7 +57,7 @@ Modul teras sistem berada pada `c2_listener.py`. Ia bertindak sebagai Pelayan HT
 ### 3.1 Endpoints Pelayan
 | Endpoint | Kaedah HTTP | Fungsi / Tindak Balas | Status HTTP |
 | :--- | :--- | :--- | :--- |
-| `/health`, `/status` | `GET` | Memulangkan status kesihatan pelayan: `{"status": "ONLINE", "service": "OMEGA_C2_LISTENER", "version": "3.1.0"}` | `200 OK` |
+| `/health`, `/status` | `GET` | Memulangkan status kesihatan pelayan: `{"status": "ONLINE", "service": "OMEGA_C2_LISTENER", "version": "3.2.0", "node": "TELUK_INTAN_EDGE_01", "architecture": "TesseraQS Core"}` | `200 OK` |
 | `/omni-listener` | `POST` | Memproses paket telemetri dan menjalankan intent autonomi mengikut kata kunci direktif. | `200 OK` / `500 Error` |
 | `/omni-listener` | `OPTIONS` | CORS Preflight check. | `204 No Content` |
 | *Endpoint Luar* | Sebarang | Memulangkan ralat endpoint tidak wujud. | `404 Not Found` |
