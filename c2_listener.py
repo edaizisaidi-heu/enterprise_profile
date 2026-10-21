@@ -19,6 +19,13 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger("c2_listener")
 
 
+def is_safe_path(base_dir: str, target_path: str) -> bool:
+    """Check if target_path resides inside base_dir to prevent path traversal."""
+    abs_base = os.path.realpath(base_dir)
+    abs_target = os.path.realpath(target_path)
+    return abs_target.startswith(abs_base)
+
+
 class C2Handler(http.server.BaseHTTPRequestHandler):
     """HTTP Request Handler for OMEGA C2 Telemetry Bridge."""
 
@@ -83,12 +90,14 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
                 # 1. INTENT: Pembersihan Modul Numerik Legasi
                 if any(k in directive for k in ["buang", "padam", "purge", "delete"]) and "modul" in directive:
                     pattern = os.path.join(MODULES_DIR, "infografik_gambarajah_interaktif_modul_[0-9]*.html")
-                    deleted = [os.path.basename(f) for f in glob.glob(pattern)]
+                    deleted = []
                     for f in glob.glob(pattern):
                         try:
-                            os.remove(f)
-                        except OSError:
-                            pass
+                            if is_safe_path(MODULES_DIR, f):
+                                os.remove(f)
+                                deleted.append(os.path.basename(f))
+                        except (FileNotFoundError, PermissionError, OSError) as err:
+                            logger.warning("Purge skipped for %s: %s", f, err)
                     response_data["action"] = "PURGE_EXECUTED"
                     response_data["deleted_count"] = len(deleted)
                     response_data["message"] = f"Berjaya menghapuskan {len(deleted)} modul numerik lama."
@@ -96,21 +105,30 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
                 # 2. INTENT: Pembaikan Pantas & Pematuhan Air-Gap
                 elif any(k in directive for k in ["baiki", "repair", "heal", "fix", "audit", "airgap"]):
                     idx_path = os.path.join(MODULES_DIR, "index.html")
-                    if os.path.exists(idx_path):
-                        with open(idx_path, "r", encoding="utf-8", errors="ignore") as inf:
-                            c = inf.read()
-                        c = re.sub(r'https?://cdn\.tailwindcss\.com', '/tailwind.js', c)
-                        with open(idx_path, "w", encoding="utf-8") as outf:
-                            outf.write(c)
+                    if is_safe_path(MODULES_DIR, idx_path) and os.path.exists(idx_path):
+                        try:
+                            with open(idx_path, "r", encoding="utf-8", errors="ignore") as inf:
+                                c = inf.read()
+                            c = re.sub(r'https?://cdn\.tailwindcss\.com', '/tailwind.js', c)
+                            with open(idx_path, "w", encoding="utf-8") as outf:
+                                outf.write(c)
+                        except (FileNotFoundError, PermissionError, OSError) as err:
+                            logger.error("Failed to patch index.html: %s", err)
 
                     auditor_path = os.path.join(MODULES_DIR, "auditor_l5_verifier.py")
-                    if os.path.exists(auditor_path):
-                        audit_res = subprocess.run(
-                            ["python3", auditor_path],
-                            capture_output=True, text=True
-                        )
-                        audit_lines = [line for line in audit_res.stdout.split("\n") if line.strip()][-3:]
-                    else:
+                    audit_lines = []
+                    if is_safe_path(MODULES_DIR, auditor_path) and os.path.exists(auditor_path):
+                        try:
+                            audit_res = subprocess.run(
+                                ["python3", auditor_path],
+                                capture_output=True, text=True, timeout=10
+                            )
+                            audit_lines = [line for line in audit_res.stdout.split("\n") if line.strip()][-3:]
+                        except Exception as err:
+                            logger.error("Auditor L5 execution error: %s", err)
+                            audit_lines = [f"Auditor L5 error: {err}"]
+
+                    if not audit_lines:
                         audit_lines = ["Auditor L5 file not found, patching applied."]
 
                     response_data["action"] = "AUDIT_AND_HEAL_COMPLETE"

@@ -149,5 +149,10 @@ class TestC2Listener(unittest.TestCase):
         self.assertEqual(len(results), 5)
         self.assertTrue(all(s == 200 for s in results))
 
+    def test_is_safe_path(self):
+        self.assertTrue(c2_listener.is_safe_path(c2_listener.MODULES_DIR, os.path.join(c2_listener.MODULES_DIR, "index.html")))
+        unsafe_path = os.path.join(c2_listener.MODULES_DIR, "..", "c2_listener.py")
+        self.assertFalse(c2_listener.is_safe_path(c2_listener.MODULES_DIR, unsafe_path))
+
 if __name__ == "__main__":
     unittest.main()
