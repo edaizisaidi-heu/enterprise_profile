@@ -8,6 +8,8 @@ import glob
 import re
 import subprocess
 import logging
+import sys
+import datetime
 from typing import Dict, Any
 
 HOST = os.environ.get("HOST", "127.0.0.1")
@@ -26,6 +28,11 @@ def is_safe_path(base_dir: str, target_path: str) -> bool:
     return abs_target.startswith(abs_base)
 
 
+def get_utc_timestamp() -> str:
+    """Return current ISO 8601 UTC timestamp."""
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
 class C2Handler(http.server.BaseHTTPRequestHandler):
     """HTTP Request Handler for OMEGA C2 Telemetry Bridge."""
 
@@ -33,12 +40,31 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, HEAD")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
 
+    def _send_method_not_allowed(self) -> None:
+        self._set_headers(405)
+        self.wfile.write(json.dumps({"error": "Method Not Allowed"}).encode("utf-8"))
+
     def do_OPTIONS(self) -> None:
         self._set_headers(204)
+
+    def do_HEAD(self) -> None:
+        if self.path in ["/health", "/status"]:
+            self._set_headers(200)
+        else:
+            self._set_headers(404)
+
+    def do_PUT(self) -> None:
+        self._send_method_not_allowed()
+
+    def do_DELETE(self) -> None:
+        self._send_method_not_allowed()
+
+    def do_PATCH(self) -> None:
+        self._send_method_not_allowed()
 
     def do_GET(self) -> None:
         if self.path in ["/health", "/status"]:
@@ -48,7 +74,8 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
                 "service": "OMEGA_C2_LISTENER",
                 "version": "3.2.0",
                 "node": "TELUK_INTAN_EDGE_01",
-                "architecture": "TesseraQS Core"
+                "architecture": "TesseraQS Core",
+                "timestamp": get_utc_timestamp()
             }).encode("utf-8"))
         else:
             self._set_headers(404)
@@ -84,7 +111,8 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
                     "status": "ACK",
                     "received": payload,
                     "action": "TELEMETRY_LOGGED",
-                    "message": "Paket telemetri diproses."
+                    "message": "Paket telemetri diproses.",
+                    "timestamp": get_utc_timestamp()
                 }
 
                 # 1. INTENT: Pembersihan Modul Numerik Legasi
@@ -102,25 +130,32 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
                     response_data["deleted_count"] = len(deleted)
                     response_data["message"] = f"Berjaya menghapuskan {len(deleted)} modul numerik lama."
 
-                # 2. INTENT: Pembaikan Pantas & Pematuhan Air-Gap
+                # 2. INTENT: Pembaikan Pantas & Pematuhan Air-Gap (Menyeluruh)
                 elif any(k in directive for k in ["baiki", "repair", "heal", "fix", "audit", "airgap"]):
-                    idx_path = os.path.join(MODULES_DIR, "index.html")
-                    if is_safe_path(MODULES_DIR, idx_path) and os.path.exists(idx_path):
-                        try:
-                            with open(idx_path, "r", encoding="utf-8", errors="ignore") as inf:
-                                c = inf.read()
-                            c = re.sub(r'https?://cdn\.tailwindcss\.com', '/tailwind.js', c)
-                            with open(idx_path, "w", encoding="utf-8") as outf:
-                                outf.write(c)
-                        except (FileNotFoundError, PermissionError, OSError) as err:
-                            logger.error("Failed to patch index.html: %s", err)
+                    patched_count = 0
+                    if os.path.exists(MODULES_DIR) and os.path.isdir(MODULES_DIR):
+                        for root, _, files in os.walk(MODULES_DIR):
+                            for file in files:
+                                if file.endswith(".html"):
+                                    html_path = os.path.join(root, file)
+                                    if is_safe_path(MODULES_DIR, html_path):
+                                        try:
+                                            with open(html_path, "r", encoding="utf-8", errors="ignore") as inf:
+                                                c = inf.read()
+                                            new_c = re.sub(r'https?://cdn\.tailwindcss\.com', '/tailwind.js', c)
+                                            if new_c != c:
+                                                with open(html_path, "w", encoding="utf-8") as outf:
+                                                    outf.write(new_c)
+                                                patched_count += 1
+                                        except (FileNotFoundError, PermissionError, OSError) as err:
+                                            logger.error("Failed to patch %s: %s", html_path, err)
 
                     auditor_path = os.path.join(MODULES_DIR, "auditor_l5_verifier.py")
                     audit_lines = []
                     if is_safe_path(MODULES_DIR, auditor_path) and os.path.exists(auditor_path):
                         try:
                             audit_res = subprocess.run(
-                                ["python3", auditor_path],
+                                [sys.executable, auditor_path],
                                 capture_output=True, text=True, timeout=10
                             )
                             audit_lines = [line for line in audit_res.stdout.split("\n") if line.strip()][-3:]
@@ -133,7 +168,8 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
 
                     response_data["action"] = "AUDIT_AND_HEAL_COMPLETE"
                     response_data["audit_summary"] = audit_lines
-                    response_data["message"] = "index.html dipateri ke Air-Gap & Audit L5 disahkan."
+                    response_data["patched_count"] = patched_count
+                    response_data["message"] = "Fail-fail HTML dipateri ke Air-Gap & Audit L5 disahkan."
 
                 # 3. INTENT: Simulasi Rekursif L2-L5 (3 Kitaran + Eskalasi Kitaran ke-4 kepada Alpha)
                 elif any(k in directive for k in ["kemaskini", "workflow", "rekursif", "recursive"]):

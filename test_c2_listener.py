@@ -82,12 +82,34 @@ class TestC2Listener(unittest.TestCase):
             self.assertEqual(data.get("version"), "3.2.0")
             self.assertEqual(data.get("node"), "TELUK_INTAN_EDGE_01")
             self.assertEqual(data.get("architecture"), "TesseraQS Core")
+            self.assertIn("timestamp", data)
 
     def test_options_cors(self):
         req = urllib.request.Request(f"{self.base_url}/omni-listener", method="OPTIONS")
         with urllib.request.urlopen(req, timeout=3) as resp:
             self.assertEqual(resp.status, 204)
             self.assertEqual(resp.headers.get("Access-Control-Allow-Origin"), "*")
+
+    def test_head_request(self):
+        req = urllib.request.Request(f"{self.base_url}/health", method="HEAD")
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            self.assertEqual(resp.status, 200)
+
+        req_404 = urllib.request.Request(f"{self.base_url}/notfound", method="HEAD")
+        try:
+            urllib.request.urlopen(req_404, timeout=3)
+        except urllib.error.HTTPError as e:
+            self.assertEqual(e.code, 404)
+
+    def test_unsupported_methods(self):
+        for method in ["PUT", "DELETE", "PATCH"]:
+            req = urllib.request.Request(f"{self.base_url}/health", method=method)
+            try:
+                urllib.request.urlopen(req, timeout=3)
+            except urllib.error.HTTPError as e:
+                self.assertEqual(e.code, 405)
+                data = json.loads(e.read().decode("utf-8"))
+                self.assertEqual(data.get("error"), "Method Not Allowed")
 
     def test_purge_intent(self):
         dummy_file = os.path.join(c2_listener.MODULES_DIR, "infografik_gambarajah_interaktif_modul_101.html")
@@ -101,15 +123,25 @@ class TestC2Listener(unittest.TestCase):
 
     def test_repair_intent(self):
         idx_path = os.path.join(c2_listener.MODULES_DIR, "index.html")
+        sub_dir = os.path.join(c2_listener.MODULES_DIR, "sub_module")
+        os.makedirs(sub_dir, exist_ok=True)
+        sub_html = os.path.join(sub_dir, "page.html")
+
         with open(idx_path, "w") as f:
             f.write('<script src="https://cdn.tailwindcss.com"></script>')
+        with open(sub_html, "w") as f:
+            f.write('<script src="http://cdn.tailwindcss.com"></script>')
 
         status, data, _ = self._send_post("/omni-listener", {"directive": "repair airgap"})
         self.assertEqual(status, 200)
         self.assertEqual(data.get("action"), "AUDIT_AND_HEAL_COMPLETE")
+        self.assertGreaterEqual(data.get("patched_count", 0), 2)
+        self.assertIn("timestamp", data)
+
         with open(idx_path, "r") as f:
-            content = f.read()
-        self.assertIn('/tailwind.js', content)
+            self.assertIn('/tailwind.js', f.read())
+        with open(sub_html, "r") as f:
+            self.assertIn('/tailwind.js', f.read())
 
     def test_non_dict_json(self):
         status, data, _ = self._send_post("/omni-listener", [1, 2, 3])

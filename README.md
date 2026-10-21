@@ -8,11 +8,11 @@ Sistem jambatan telemetri C2 dan enjin eksekusi niat autonomi bagi **TesseraQS C
 
 ### Ciri-ciri Utama & Intent Matrix
 
-1. **GET `/health` / `/status`**:
-   - Memulangkan status kesihatan pelayan (`"status": "ONLINE"`, `"version": "3.2.0"` bersama metadata `"node"` dan `"architecture"`).
+1. **GET / HEAD `/health` / `/status`**:
+   - Memulangkan status kesihatan pelayan (`"status": "ONLINE"`, `"version": "3.2.0"` bersama metadata `"node"`, `"architecture"`, dan cap masa `"timestamp"`).
 2. **POST `/omni-listener`**:
    - **Pembersihan Modul Numerik Legasi** (`buang`, `padam`, `purge`, `delete` + `modul`): Menghapuskan fail modul legasi daripada `MODULES_DIR`.
-   - **Pembaikan Pantas & Pematuhan Air-Gap** (`baiki`, `repair`, `heal`, `fix`, `audit`, `airgap`): Memateri pautan CDN kepada sumber tempatan `/tailwind.js` pada `index.html` dan menjalankan audit pengesahan L5.
+   - **Pembaikan Pantas & Pematuhan Air-Gap** (`baiki`, `repair`, `heal`, `fix`, `audit`, `airgap`): Memateri pautan CDN kepada sumber tempatan `/tailwind.js` pada semua fail `.html` dalam `MODULES_DIR` dan menjalankan audit pengesahan L5.
    - **Simulasi Rekursif L2-L5** (`kemaskini`, `workflow`, `rekursif`, `recursive`): Melakukan kitaran pengesahan rekursif L2-L5. Jika `force_fail` disertakan, eskalasi automatik diserahkan kepada Alpha.
 3. **CORS Preflight**:
    - Sokongan penuh tindak balas `OPTIONS` untuk CORS.
