@@ -10,8 +10,8 @@ Keseluruhan repositori ini dibina di atas prinsip **Dialektika Fraktal Rekursif 
 
 ### 1.1 Keseimbangan Yin dan Yang (Dualiti Autonomi)
 - **Yin (Keadaan Pasif, Penerimaan & Pengesahan Audit)**:
-  - Mewakili integriti data pasif, penyimpanan status, pematuhan *Air-Gap*, pengamatan telemetri, serta verifikasi *Zero-Knowledge Proof* (ZKP).
-  - Dalam kod: Pengepala HTTP CORS, pemeriksaan kesihatan (`/health`), pematuhan RFC 9116 (`security.json`), dan pembacaan failsafe.
+  - Mewakili integriti data pasif, penyimpanan status, pematuhan *Air-Gap*, pengamatan telemetri, cap masa UTC ISO 8601, serta verifikasi *Zero-Knowledge Proof* (ZKP).
+  - Dalam kod: Pengepala HTTP CORS, pemeriksaan kesihatan (`/health`), sokongan kaedah `HEAD`, penolakan `405 Method Not Allowed`, pematuhan RFC 9116 (`security.json`), dan pembacaan failsafe.
 - **Yang (Aksi Aktif, Eksekusi Intent & Eskalasi Mutlak)**:
   - Mewakili daya tindakan autonomi, pembersihan modul legasi, pematerian automatik (*self-healing patch*), dan eskalasi kitaran ke-4 kepada Alpha.
   - Dalam kod: Pemprosesan `/omni-listener`, penghapusan glob fail `infografik_gambarajah_interaktif_modul_*.html`, pengubahsuaian regex pada `index.html`, dan tindak balas `ESCALATION_REQUIRED`.
@@ -44,9 +44,12 @@ Keseluruhan repositori ini dibina di atas prinsip **Dialektika Fraktal Rekursif 
 - **Resiliensi HTTP Handler**:
   - Pemprosesan `Content-Length` mesti berkeupayaan mengendalikan nilai yang tidak sah, kosong, atau rosak tanpa memulangkan tindak balas terhempas (*unhandled crash*).
   - Parsing JSON mesti bersikap tolerang (*tolerant parsing*): Jika payload JSON rosak atau berupa jenis data lain (seperti tatasusunan/array), sistem mesti membungkus data dalam struktur objek `{"raw": payload}` dan memulangkan status HTTP 200 ACK.
-- **Sokongan CORS**:
-  - Setiap endpoint wajib memulangkan pengepala `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: POST, GET, OPTIONS`, dan `Access-Control-Allow-Headers: Content-Type`.
+- **Sokongan CORS & HTTP Methods**:
+  - Setiap endpoint wajib memulangkan pengepala `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: POST, GET, OPTIONS, HEAD`, dan `Access-Control-Allow-Headers: Content-Type`.
   - Permintaan HTTP `OPTIONS` mesti dibalas dengan status HTTP `204 No Content`.
+  - Permintaan HTTP `HEAD` disokong bagi `/health` dan `/status` (HTTP 200/404 tanpa badan entiti).
+  - Kaedah HTTP yang tidak dibenarkan (seperti `PUT`, `DELETE`, `PATCH`) mesti memulangkan status HTTP `405 Method Not Allowed`.
+  - Setiap respons JSON yang sah disertakan cap masa ISO 8601 UTC (`timestamp`).
 
 ---
 
@@ -57,9 +60,10 @@ Modul teras sistem berada pada `c2_listener.py`. Ia bertindak sebagai Pelayan HT
 ### 3.1 Endpoints Pelayan
 | Endpoint | Kaedah HTTP | Fungsi / Tindak Balas | Status HTTP |
 | :--- | :--- | :--- | :--- |
-| `/health`, `/status` | `GET` | Memulangkan status kesihatan pelayan: `{"status": "ONLINE", "service": "OMEGA_C2_LISTENER", "version": "3.2.0", "node": "TELUK_INTAN_EDGE_01", "architecture": "TesseraQS Core"}` | `200 OK` |
-| `/omni-listener` | `POST` | Memproses paket telemetri dan menjalankan intent autonomi mengikut kata kunci direktif. | `200 OK` / `500 Error` |
+| `/health`, `/status` | `GET` / `HEAD` | Memulangkan status kesihatan pelayan: `{"status": "ONLINE", "service": "OMEGA_C2_LISTENER", "version": "3.2.0", "node": "TELUK_INTAN_EDGE_01", "architecture": "TesseraQS Core", "timestamp": "..."}` | `200 OK` / `404 Not Found` |
+| `/omni-listener` | `POST` | Memproses paket telemetri dan menjalankan intent autonomi mengikut kata kunci direktif. | `200 OK` / `413 Payload Too Large` / `500 Error` |
 | `/omni-listener` | `OPTIONS` | CORS Preflight check. | `204 No Content` |
+| *Kaedah Tidak Dibenarkan* | `PUT`, `DELETE`, `PATCH` | Memulangkan ralat kaedah tidak dibenarkan. | `405 Method Not Allowed` |
 | *Endpoint Luar* | Sebarang | Memulangkan ralat endpoint tidak wujud. | `404 Not Found` |
 
 ### 3.2 Intent Matrix & Katalis Arahan
@@ -73,9 +77,9 @@ Enjin `/omni-listener` menilai medan `directive` dalam payload JSON masukan meng
 2. **Pembaikan Pantas & Pematuhan Air-Gap (`AUDIT_AND_HEAL_COMPLETE`)**:
    - **Kata Kunci**: Mana-mana kata daripada `["baiki", "repair", "heal", "fix", "audit", "airgap"]`.
    - **Tindakan**:
-     1. Memateri `index.html` di dalam `MODULES_DIR`: Menukar pautan `https?://cdn.tailwindcss.com` kepada skrip tempatan `/tailwind.js`.
-     2. Menjalankan skrip auditor `auditor_l5_verifier.py` (jika wujud) menggunakan `subprocess.run` dan mengambil 3 baris stdout terakhir.
-   - **Output**: Memulangkan `action: "AUDIT_AND_HEAL_COMPLETE"` dan `audit_summary`.
+     1. Memateri semua fail `.html` secara rekursif di dalam `MODULES_DIR`: Menukar pautan `https?://cdn.tailwindcss.com` kepada skrip tempatan `/tailwind.js`.
+     2. Menjalankan skrip auditor `auditor_l5_verifier.py` (jika wujud) menggunakan `subprocess.run([sys.executable, ...])` dan mengambil 3 baris stdout terakhir.
+   - **Output**: Memulangkan `action: "AUDIT_AND_HEAL_COMPLETE"`, `patched_count`, dan `audit_summary`.
 
 3. **Simulasi Rekursif L2-L5 & Eskalasi Alpha (`RECURSIVE_SIMULATION_UPDATED` / `ESCALATED_TO_ALPHA`)**:
    - **Kata Kunci**: Mana-mana kata daripada `["kemaskini", "workflow", "rekursif", "recursive"]`.
