@@ -84,6 +84,17 @@ class TestC2Listener(unittest.TestCase):
             self.assertEqual(data.get("architecture"), "TesseraQS Core")
             self.assertIn("timestamp", data)
 
+    def test_status_check(self):
+        req = urllib.request.Request(f"{self.base_url}/status")
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertEqual(data.get("status"), "ONLINE")
+
+        req_head = urllib.request.Request(f"{self.base_url}/status", method="HEAD")
+        with urllib.request.urlopen(req_head, timeout=3) as resp:
+            self.assertEqual(resp.status, 200)
+
     def test_options_cors(self):
         req = urllib.request.Request(f"{self.base_url}/omni-listener", method="OPTIONS")
         with urllib.request.urlopen(req, timeout=3) as resp:
