@@ -200,5 +200,9 @@ class TestC2Listener(unittest.TestCase):
         unsafe_path = os.path.join(c2_listener.MODULES_DIR, "..", "c2_listener.py")
         self.assertFalse(c2_listener.is_safe_path(c2_listener.MODULES_DIR, unsafe_path))
 
+        # Test prefix collision bypass prevention (e.g. /modules vs /modules_extra)
+        sibling_prefix_path = c2_listener.MODULES_DIR.rstrip("/\\") + "_extra"
+        self.assertFalse(c2_listener.is_safe_path(c2_listener.MODULES_DIR, sibling_prefix_path))
+
 if __name__ == "__main__":
     unittest.main()

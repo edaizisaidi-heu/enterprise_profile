@@ -25,7 +25,10 @@ def is_safe_path(base_dir: str, target_path: str) -> bool:
     """Check if target_path resides inside base_dir to prevent path traversal."""
     abs_base = os.path.realpath(base_dir)
     abs_target = os.path.realpath(target_path)
-    return abs_target.startswith(abs_base)
+    try:
+        return os.path.commonpath([abs_base, abs_target]) == abs_base
+    except ValueError:
+        return False
 
 
 def get_utc_timestamp() -> str:
