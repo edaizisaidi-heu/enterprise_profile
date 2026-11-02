@@ -3,6 +3,7 @@
 Sistem jambatan telemetri C2 dan enjin eksekusi niat autonomi bagi **TesseraQS Core Architecture**.
 
 [![Status](https://img.shields.io/badge/Sovereign_Defense-100%25_ACTIVE-brightgreen)](#-keselamatan--kedaulatan-digital)
+[![OpenAPI 3.1](https://img.shields.io/badge/OpenAPI-3.1.0-blue)](/openapi.json)
 [![RFC 9116](https://img.shields.io/badge/RFC_9116-VERIFIED-blue)](/.well-known/security.txt)
 [![ZKP Consensus](https://img.shields.io/badge/ZKP_Circuit-corporate__auth-purple)](/attestation/sovereign_consensus.json)
 
@@ -12,8 +13,8 @@ Sistem jambatan telemetri C2 dan enjin eksekusi niat autonomi bagi **TesseraQS C
 
 `c2_listener.py` bertindak sebagai pelayan HTTP C2 autonomi yang memproses paket telemetri dan menjalankan arahan (*intents*) autonomi berpandukan direktif yang diterima. Senibina ini berpandukan falsafah **Dialektika Fraktal Rekursif YinYang**:
 
-- **Yin (Pasif & Audit)**: Pengesahan integriti data pasif, status kesihatan pelayan (`/health`), pematuhan *Air-Gap*, cap masa UTC ISO 8601, serta attestation keselamatan RFC 9116.
-- **Yang (Aktif & Eksekusi)**: Pemprosesan `/omni-listener`, pembersihan modul legasi, pematerian automatik (*self-healing patch*), dan eskalasi kitaran ke-4 kepada Alpha.
+- **Yin (Pasif & Audit)**: Pengesahan integriti data pasif, status kesihatan pelayan (`/health`), pemantauan metrik masa nyata (`/metrics` & `/telemetry/stats`), pematuhan *Air-Gap*, cap masa UTC ISO 8601, serta attestation keselamatan RFC 9116.
+- **Yang (Aktif & Eksekusi)**: Pemprosesan `/omni-listener`, verifikasi tandatangan kriptografi kedaulatan (HMAC-SHA256), pembersihan modul legasi, pematerian automatik (*self-healing patch*), dan eskalasi kitaran ke-4 kepada Alpha.
 
 ---
 
@@ -22,8 +23,10 @@ Sistem jambatan telemetri C2 dan enjin eksekusi niat autonomi bagi **TesseraQS C
 ### Endpoint HTTP
 | Endpoint | Kaedah HTTP | Fungsi / Tindak Balas | Status HTTP |
 | :--- | :--- | :--- | :--- |
-| `/health`, `/status` | `GET` / `HEAD` | Memulangkan status kesihatan pelayan (`ONLINE`, v3.2.0, metadata nod Teluk Intan, UTC timestamp). | `200 OK` / `404 Not Found` |
-| `/omni-listener` | `POST` | Memproses paket telemetri dan menjalankan intent autonomi berpandukan direktif. | `200 OK` / `413 Payload Too Large` / `500 Error` |
+| `/health`, `/status` | `GET` / `HEAD` | Memulangkan status kesihatan pelayan (`ONLINE`, v3.2.0, metadata nod Teluk Intan, UTC timestamp, `uptime_seconds`). | `200 OK` / `404 Not Found` |
+| `/metrics` | `GET` / `HEAD` | Memulangkan metrik telemetri & operasi dalam format piawai Prometheus (text/plain). | `200 OK` |
+| `/telemetry/stats` | `GET` / `HEAD` | Memulangkan statistik terperinci operasi telemetri dan pecahan intent dalam format JSON. | `200 OK` |
+| `/omni-listener` | `POST` | Memproses paket telemetri dan menjalankan intent autonomi berpandukan direktif (menyokong tandatangan `X-Sovereign-Signature`). | `200 OK` / `401 Unauthorized` / `413 Payload Too Large` / `500 Error` |
 | `/omni-listener` | `OPTIONS` | CORS Preflight check. | `204 No Content` |
 | *Kaedah Tidak Dibenarkan* | `PUT`, `DELETE`, `PATCH` | Memulangkan ralat kaedah tidak dibenarkan. | `405 Method Not Allowed` |
 
@@ -42,6 +45,27 @@ Sistem jambatan telemetri C2 dan enjin eksekusi niat autonomi bagi **TesseraQS C
 
 ---
 
+## 🛠️ TesseraQS CLI Kedaulatan Autonomi (`tessera_cli.py`)
+
+Alat CLI mandiri bersepadu untuk pengurusan operasi dan telemetri nod:
+
+```bash
+# Semakan kesihatan nod
+python3 tessera_cli.py health
+
+# Ambil metrik JSON atau Prometheus
+python3 tessera_cli.py metrics --format json
+python3 tessera_cli.py metrics --format prometheus
+
+# Hantar telemetri / arahan intent
+python3 tessera_cli.py send --directive "[DIRECTIVE: RECURSIVE SIMULATION]"
+
+# Audit forensik tempatan
+python3 tessera_cli.py audit
+```
+
+---
+
 ## ⚙️ Pembolehubah Persekitaran (Environment Variables)
 
 - `HOST`: Antaramuka pelayan C2 (Default: `127.0.0.1`).
@@ -50,6 +74,7 @@ Sistem jambatan telemetri C2 dan enjin eksekusi niat autonomi bagi **TesseraQS C
 - `C2_BASE_URL`: Tapak URL pelayan C2 bagi skrip pengesahan (Default: `http://127.0.0.1:5000`).
 - `C2_URL`: URL penuh endpoint `/omni-listener` (Default: `${C2_BASE_URL}/omni-listener`).
 - `MAX_PAYLOAD_SIZE`: Had maksimum saiz muatan JSON (Default: `1048576` / 1MB).
+- `SOVEREIGN_SECRET_KEY`: Kunci rahsia HMAC-SHA256 bagi mengesahkan pengepala `X-Sovereign-Signature` (Pilihan).
 
 ---
 
@@ -67,7 +92,6 @@ python3 -m unittest test_c2_listener.py
 
 ### 3. Pengesahan Swarm Integrasi
 ```bash
-# Pastikan c2_listener.py berjalan di latar belakang sebelum memulakan ujian swarm
 python3 verify_omega_swarm.py
 ```
 
@@ -76,10 +100,16 @@ python3 verify_omega_swarm.py
 ./verify_defense.sh
 ```
 
+### 5. Verifikasi Holistik Sehenti
+```bash
+./run_all_verifications.sh
+```
+
 ---
 
 ## 🛡️ Keselamatan & Kedaulatan Digital
 
+- **OpenAPI 3.1 Specification**: Didokumentasikan secara rasmi pada `/openapi.json`.
 - **RFC 9116 Attestation**: Disahkan pada `/.well-known/security.txt` dan `/security.json`.
 - **Konsensus ZKP Autonomi**: Bukti konsensus tempatan Teluk Intan Node pada `/attestation/sovereign_consensus.json` (Peranan: CTO, Legal, Scribe).
 - **Anti-AI Training Shield**: Sekatan bot pengutip data & latihan AI dikuatkuasakan via `robots.txt`.
