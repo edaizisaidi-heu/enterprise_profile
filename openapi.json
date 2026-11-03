@@ -1,0 +1,267 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OMEGA C2 Telemetry Bridge & Autonomous Intent Executor",
+    "description": "Standardized REST & Telemetry API for TesseraQS Core Architecture, governed by Fractal Recursive YinYang Dialectics and sovereign cryptographic attestation.",
+    "version": "3.2.0",
+    "contact": {
+      "name": "Omega Sovereign Labs Security Team",
+      "email": "security@tesseraqs.cloud-ip.cc",
+      "url": "https://tesseraqs.cloud-ip.cc"
+    },
+    "license": {
+      "name": "Sovereign Autonomous License",
+      "url": "https://tesseraqs.cloud-ip.cc/terms.html"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:5000",
+      "description": "Local Sovereign Edge Node (Teluk Intan Node)"
+    },
+    {
+      "url": "https://tesseraqs.cloud-ip.cc",
+      "description": "Production Attestation & Gateway Node"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Node Health Check",
+        "description": "Returns operational status and identity of the C2 listener node.",
+        "responses": {
+          "200": {
+            "description": "Node is ONLINE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "summary": "Node Health Ping (HEAD)",
+        "description": "Quick status ping without payload body.",
+        "responses": {
+          "200": {
+            "description": "Node is ONLINE"
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "summary": "Node Status Alias",
+        "description": "Alias for /health endpoint.",
+        "responses": {
+          "200": {
+            "description": "Node is ONLINE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "summary": "Node Status Ping (HEAD)",
+        "responses": {
+          "200": {
+            "description": "Node is ONLINE"
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "summary": "Prometheus Metrics",
+        "description": "Returns telemetry and server metrics in Prometheus text exposition format.",
+        "responses": {
+          "200": {
+            "description": "Metrics text dump",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/telemetry/stats": {
+      "get": {
+        "summary": "Telemetry Runtime Statistics",
+        "description": "Returns telemetry metrics, uptime, and executed intent breakdown in JSON format.",
+        "responses": {
+          "200": {
+            "description": "Telemetry statistics object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelemetryStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/omni-listener": {
+      "post": {
+        "summary": "Omni Telemetry & Autonomous Intent Dispatcher",
+        "description": "Processes inbound telemetry packet and triggers autonomous self-healing, module purge, or recursive simulation workflows.",
+        "parameters": [
+          {
+            "name": "X-Sovereign-Signature",
+            "in": "header",
+            "required": false,
+            "description": "Optional HMAC-SHA256 signature calculated over raw request body using SOVEREIGN_SECRET_KEY.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OmniListenerPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Telemetry processed and intent executed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OmniListenerResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Cryptographic signature mismatch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload Too Large - Exceeds configured MAX_PAYLOAD_SIZE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "summary": "CORS Preflight",
+        "description": "Handles CORS preflight headers.",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "ONLINE" },
+          "service": { "type": "string", "example": "OMEGA_C2_LISTENER" },
+          "version": { "type": "string", "example": "3.2.0" },
+          "node": { "type": "string", "example": "TELUK_INTAN_EDGE_01" },
+          "architecture": { "type": "string", "example": "TesseraQS Core" },
+          "timestamp": { "type": "string", "example": "2026-11-01T23:00:00+00:00" },
+          "uptime_seconds": { "type": "number", "example": 142.5 }
+        },
+        "required": ["status", "service", "version", "node", "architecture", "timestamp"]
+      },
+      "TelemetryStatsResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "ONLINE" },
+          "node": { "type": "string", "example": "TELUK_INTAN_EDGE_01" },
+          "version": { "type": "string", "example": "3.2.0" },
+          "uptime_seconds": { "type": "number", "example": 142.5 },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "total_requests": { "type": "integer", "example": 42 },
+              "processed_telemetry": { "type": "integer", "example": 15 },
+              "intents_executed": {
+                "type": "object",
+                "additionalProperties": { "type": "integer" }
+              },
+              "errors": { "type": "integer", "example": 0 },
+              "signature_failures": { "type": "integer", "example": 0 }
+            }
+          },
+          "timestamp": { "type": "string", "example": "2026-11-01T23:00:00+00:00" }
+        }
+      },
+      "OmniListenerPayload": {
+        "type": "object",
+        "properties": {
+          "directive": { "type": "string", "description": "Trigger keyword string", "example": "[DIRECTIVE: RECURSIVE SIMULATION]" },
+          "module": { "type": "string", "example": "omega_swarm_command" },
+          "intent": { "type": "string", "example": "SWARM_DIRECTIVE" }
+        }
+      },
+      "OmniListenerResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "enum": ["ACK", "ESCALATION_REQUIRED"], "example": "ACK" },
+          "received": { "type": "object" },
+          "action": { "type": "string", "example": "RECURSIVE_SIMULATION_UPDATED" },
+          "message": { "type": "string", "example": "Paket telemetri diproses." },
+          "timestamp": { "type": "string", "example": "2026-11-01T23:00:00+00:00" },
+          "simulation_cycles": { "type": "integer", "example": 3 },
+          "deleted_count": { "type": "integer", "example": 0 },
+          "patched_count": { "type": "integer", "example": 0 },
+          "audit_summary": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["status", "action", "timestamp"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "example": "Unauthorized" },
+          "message": { "type": "string", "example": "Pengesahan tandatangan kriptografi kedaulatan (HMAC-SHA256) gagal." }
+        },
+        "required": ["error"]
+      }
+    }
+  }
+}

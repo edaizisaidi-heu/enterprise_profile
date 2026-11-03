@@ -6,7 +6,10 @@ import os
 import tempfile
 import urllib.request
 import urllib.error
+import hmac
+import hashlib
 import c2_listener
+import tessera_cli
 
 class TestC2Listener(unittest.TestCase):
     @classmethod
@@ -14,6 +17,7 @@ class TestC2Listener(unittest.TestCase):
         # Create a temporary directory for MODULES_DIR testing
         cls.temp_dir = tempfile.TemporaryDirectory()
         cls.old_modules_dir = c2_listener.MODULES_DIR
+        cls.old_secret = c2_listener.SOVEREIGN_SECRET_KEY
         c2_listener.MODULES_DIR = cls.temp_dir.name
 
         server_class = getattr(http.server, "ThreadingHTTPServer", http.server.HTTPServer)
@@ -25,6 +29,7 @@ class TestC2Listener(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         c2_listener.MODULES_DIR = cls.old_modules_dir
+        c2_listener.SOVEREIGN_SECRET_KEY = cls.old_secret
         cls.server.shutdown()
         cls.server.server_close()
         cls.temp_dir.cleanup()
@@ -83,6 +88,7 @@ class TestC2Listener(unittest.TestCase):
             self.assertEqual(data.get("node"), "TELUK_INTAN_EDGE_01")
             self.assertEqual(data.get("architecture"), "TesseraQS Core")
             self.assertIn("timestamp", data)
+            self.assertIn("uptime_seconds", data)
 
     def test_status_check(self):
         req = urllib.request.Request(f"{self.base_url}/status")
@@ -95,15 +101,39 @@ class TestC2Listener(unittest.TestCase):
         with urllib.request.urlopen(req_head, timeout=3) as resp:
             self.assertEqual(resp.status, 200)
 
+    def test_metrics_prometheus_endpoint(self):
+        req = urllib.request.Request(f"{self.base_url}/metrics")
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            self.assertEqual(resp.status, 200)
+            self.assertIn("text/plain", resp.headers.get("Content-Type", ""))
+            content = resp.read().decode("utf-8")
+            self.assertIn("omega_c2_uptime_seconds", content)
+            self.assertIn("omega_c2_requests_total", content)
+            self.assertIn("omega_c2_telemetry_total", content)
+
+    def test_telemetry_stats_endpoint(self):
+        req = urllib.request.Request(f"{self.base_url}/telemetry/stats")
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertEqual(data.get("status"), "ONLINE")
+            self.assertIn("metrics", data)
+            self.assertIn("intents_executed", data["metrics"])
+
     def test_options_cors(self):
         req = urllib.request.Request(f"{self.base_url}/omni-listener", method="OPTIONS")
         with urllib.request.urlopen(req, timeout=3) as resp:
             self.assertEqual(resp.status, 204)
             self.assertEqual(resp.headers.get("Access-Control-Allow-Origin"), "*")
+            self.assertIn("X-Sovereign-Signature", resp.headers.get("Access-Control-Allow-Headers", ""))
 
     def test_head_request(self):
         req = urllib.request.Request(f"{self.base_url}/health", method="HEAD")
         with urllib.request.urlopen(req, timeout=3) as resp:
+            self.assertEqual(resp.status, 200)
+
+        req_metrics = urllib.request.Request(f"{self.base_url}/metrics", method="HEAD")
+        with urllib.request.urlopen(req_metrics, timeout=3) as resp:
             self.assertEqual(resp.status, 200)
 
         req_404 = urllib.request.Request(f"{self.base_url}/notfound", method="HEAD")
@@ -153,6 +183,44 @@ class TestC2Listener(unittest.TestCase):
             self.assertIn('/tailwind.js', f.read())
         with open(sub_html, "r") as f:
             self.assertIn('/tailwind.js', f.read())
+
+    def test_hmac_signature_verification(self):
+        secret_key = "sovereign_ultra_secure_key"
+        c2_listener.SOVEREIGN_SECRET_KEY = secret_key
+        try:
+            payload = {"directive": "sovereign signed intent"}
+            payload_bytes = json.dumps(payload).encode("utf-8")
+            valid_sig = hmac.new(secret_key.encode("utf-8"), payload_bytes, hashlib.sha256).hexdigest()
+
+            # 1. Valid Signature -> 200 OK
+            status, data, _ = self._send_post(
+                "/omni-listener",
+                payload,
+                headers={"X-Sovereign-Signature": valid_sig}
+            )
+            self.assertEqual(status, 200)
+            self.assertEqual(data.get("status"), "ACK")
+
+            # 2. Invalid Signature -> 401 Unauthorized
+            status, data, _ = self._send_post(
+                "/omni-listener",
+                payload,
+                headers={"X-Sovereign-Signature": "invalid_hex_signature"}
+            )
+            self.assertEqual(status, 401)
+            self.assertEqual(data.get("error"), "Unauthorized")
+
+            # 3. Missing Signature -> 401 Unauthorized
+            status, data, _ = self._send_post("/omni-listener", payload)
+            self.assertEqual(status, 401)
+        finally:
+            c2_listener.SOVEREIGN_SECRET_KEY = ""
+
+    def test_tessera_cli_helper(self):
+        test_payload = b'{"hello": "world"}'
+        sig = tessera_cli.compute_signature(test_payload, "testkey")
+        self.assertTrue(len(sig) > 0)
+        self.assertEqual(tessera_cli.compute_signature(test_payload, ""), "")
 
     def test_non_dict_json(self):
         status, data, _ = self._send_post("/omni-listener", [1, 2, 3])
