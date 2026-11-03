@@ -10,10 +10,10 @@ Keseluruhan repositori ini dibina di atas prinsip **Dialektika Fraktal Rekursif 
 
 ### 1.1 Keseimbangan Yin dan Yang (Dualiti Autonomi)
 - **Yin (Keadaan Pasif, Penerimaan & Pengesahan Audit)**:
-  - Mewakili integriti data pasif, penyimpanan status, pematuhan *Air-Gap*, pengamatan telemetri, cap masa UTC ISO 8601, serta verifikasi *Zero-Knowledge Proof* (ZKP).
+  - Mewakili integriti data pasif, penyimpanan status, pematuhan *Air-Gap*, pengamatan telemetri, metrik Prometheus (`/metrics`), statistik operasi (`/telemetry/stats`), cap masa UTC ISO 8601, serta verifikasi *Zero-Knowledge Proof* (ZKP).
   - Dalam kod: Pengepala HTTP CORS, pemeriksaan kesihatan (`/health`), sokongan kaedah `HEAD`, penolakan `405 Method Not Allowed`, pematuhan RFC 9116 (`security.json`), dan pembacaan failsafe.
 - **Yang (Aksi Aktif, Eksekusi Intent & Eskalasi Mutlak)**:
-  - Mewakili daya tindakan autonomi, pembersihan modul legasi, pematerian automatik (*self-healing patch*), dan eskalasi kitaran ke-4 kepada Alpha.
+  - Mewakili daya tindakan autonomi, pengesahan tandatangan kriptografi HMAC kedaulatan (`X-Sovereign-Signature`), pembersihan modul legasi, pematerian automatik (*self-healing patch*), dan eskalasi kitaran ke-4 kepada Alpha.
   - Dalam kod: Pemprosesan `/omni-listener`, penghapusan glob fail `infografik_gambarajah_interaktif_modul_*.html`, pengubahsuaian regex pada `index.html`, dan tindak balas `ESCALATION_REQUIRED`.
 
 ### 1.2 Fraktal Rekursif (Rekursi Multi-Lapis L2-L5 & ZKP L6)
@@ -33,7 +33,7 @@ Keseluruhan repositori ini dibina di atas prinsip **Dialektika Fraktal Rekursif 
 1. **Pematuhan Mutlak Tanpa Kompromi**:
    - Ejen mesti menghadam dan mematuhi keseluruhan kandungan repositori tanpa mengabaikan mana-mana direktif keselamatan atau ujian.
 2. **Kedaulatan & Pematuhan Air-Gap**:
-   - Dilarang menambah pergantungan (*dependencies*) luaran yang tidak diperlukan. Keutamaan diberikan kepada Pustaka Standard Python (`http.server`, `json`, `os`, `glob`, `re`, `subprocess`, `unittest`, `urllib`).
+   - Dilarang menambah pergantungan (*dependencies*) luaran yang tidak diperlukan. Keutamaan diberikan kepada Pustaka Standard Python (`http.server`, `json`, `os`, `glob`, `re`, `subprocess`, `unittest`, `urllib`, `hmac`, `hashlib`, `time`).
    - Semua rujukan sumber luaran (seperti CDN) mesti berkeupayaan dipateri ke laluan tempatan (contoh: `/tailwind.js`).
 3. **Penyelenggaraan Kod Berintegriti Tinggi**:
    - Setiap modifikasi pada `c2_listener.py` mesti disusuli dengan pengemaskinian atau pengesahan ujian unit dalam `test_c2_listener.py`.
@@ -44,10 +44,11 @@ Keseluruhan repositori ini dibina di atas prinsip **Dialektika Fraktal Rekursif 
 - **Resiliensi HTTP Handler**:
   - Pemprosesan `Content-Length` mesti berkeupayaan mengendalikan nilai yang tidak sah, kosong, atau rosak tanpa memulangkan tindak balas terhempas (*unhandled crash*).
   - Parsing JSON mesti bersikap tolerang (*tolerant parsing*): Jika payload JSON rosak atau berupa jenis data lain (seperti tatasusunan/array), sistem mesti membungkus data dalam struktur objek `{"raw": payload}` dan memulangkan status HTTP 200 ACK.
+  - Verifikasi HMAC-SHA256 (`X-Sovereign-Signature`) dijalankan apabila `SOVEREIGN_SECRET_KEY` ditetapkan.
 - **Sokongan CORS & HTTP Methods**:
-  - Setiap endpoint wajib memulangkan pengepala `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: POST, GET, OPTIONS, HEAD`, dan `Access-Control-Allow-Headers: Content-Type`.
+  - Setiap endpoint wajib memulangkan pengepala `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: POST, GET, OPTIONS, HEAD`, dan `Access-Control-Allow-Headers: Content-Type, X-Sovereign-Signature`.
   - Permintaan HTTP `OPTIONS` mesti dibalas dengan status HTTP `204 No Content`.
-  - Permintaan HTTP `HEAD` disokong bagi `/health` dan `/status` (HTTP 200/404 tanpa badan entiti).
+  - Permintaan HTTP `HEAD` disokong bagi `/health`, `/status`, `/metrics`, dan `/telemetry/stats`.
   - Kaedah HTTP yang tidak dibenarkan (seperti `PUT`, `DELETE`, `PATCH`) mesti memulangkan status HTTP `405 Method Not Allowed`.
   - Setiap respons JSON yang sah disertakan cap masa ISO 8601 UTC (`timestamp`).
 
@@ -60,8 +61,10 @@ Modul teras sistem berada pada `c2_listener.py`. Ia bertindak sebagai Pelayan HT
 ### 3.1 Endpoints Pelayan
 | Endpoint | Kaedah HTTP | Fungsi / Tindak Balas | Status HTTP |
 | :--- | :--- | :--- | :--- |
-| `/health`, `/status` | `GET` / `HEAD` | Memulangkan status kesihatan pelayan: `{"status": "ONLINE", "service": "OMEGA_C2_LISTENER", "version": "3.2.0", "node": "TELUK_INTAN_EDGE_01", "architecture": "TesseraQS Core", "timestamp": "..."}` | `200 OK` / `404 Not Found` |
-| `/omni-listener` | `POST` | Memproses paket telemetri dan menjalankan intent autonomi mengikut kata kunci direktif. | `200 OK` / `413 Payload Too Large` / `500 Error` |
+| `/health`, `/status` | `GET` / `HEAD` | Memulangkan status kesihatan pelayan: `{"status": "ONLINE", "service": "OMEGA_C2_LISTENER", "version": "3.2.0", "node": "TELUK_INTAN_EDGE_01", "architecture": "TesseraQS Core", "timestamp": "...", "uptime_seconds": ...}` | `200 OK` / `404 Not Found` |
+| `/metrics` | `GET` / `HEAD` | Memulangkan metrik telemetri & nod dalam format teks Prometheus. | `200 OK` |
+| `/telemetry/stats` | `GET` / `HEAD` | Memulangkan statistik penggunaan memori, jumlah panggilan, dan pecahan intent dalam format JSON. | `200 OK` |
+| `/omni-listener` | `POST` | Memproses paket telemetri dan menjalankan intent autonomi mengikut kata kunci direktif. | `200 OK` / `401 Unauthorized` / `413 Payload Too Large` / `500 Error` |
 | `/omni-listener` | `OPTIONS` | CORS Preflight check. | `204 No Content` |
 | *Kaedah Tidak Dibenarkan* | `PUT`, `DELETE`, `PATCH` | Memulangkan ralat kaedah tidak dibenarkan. | `405 Method Not Allowed` |
 | *Endpoint Luar* | Sebarang | Memulangkan ralat endpoint tidak wujud. | `404 Not Found` |
@@ -95,10 +98,11 @@ Enjin `/omni-listener` menilai medan `directive` dalam payload JSON masukan meng
    - **Output**: Memulangkan `status: "ACK"`, `action: "TELEMETRY_LOGGED"`.
 
 ### 3.3 Pembolehubah Persekitaran (Environment Variables)
-- `PORT`: Port pelayan HTTP C2 (Defaut: `5000`).
+- `PORT`: Port pelayan HTTP C2 (Default: `5000`).
 - `MODULES_DIR`: Direktori kerja modul (Default: `~/workspace/modules`).
 - `C2_BASE_URL`: URL asas C2 bagi ujian integrasi (Default: `http://127.0.0.1:5000`).
 - `C2_URL`: URL penuh endpoint Omni Listener (Default: `${C2_BASE_URL}/omni-listener`).
+- `SOVEREIGN_SECRET_KEY`: Kunci rahsia HMAC-SHA256 bagi mengesahkan integriti direktif (Pilihan).
 
 ---
 
@@ -107,23 +111,11 @@ Enjin `/omni-listener` menilai medan `directive` dalam payload JSON masukan meng
 Ejen AI wajib menjalankan dan memastikan kesemua skrip pengesahan ini lulus sepenuhnya sebelum membuat sebarang penyerahan kod (*submission*).
 
 ### 4.1 Ujian Unit Autonomi (Python `unittest`)
-Pelaksanaan ujian unit meliputi kesemua laluan kod (*code paths*), pengendalian pengecualian (*exception handling*), serta kes-kes sempadan (*edge cases*).
+Pelaksanaan ujian unit meliputi kesemua laluan kod (*code paths*), metrik, tandatangan HMAC, CLI, serta kes-kes sempadan (*edge cases*).
 
 ```bash
 python3 -m unittest test_c2_listener.py
 ```
-- **Cakupan Ujian (`TestC2Listener`)**:
-  - `test_telemetry_logged_default`: Pengesahan tindak balas telemetri am.
-  - `test_recursive_simulation`: Pengesahan 3 kitaran simulasi L2-L5.
-  - `test_recursive_simulation_force_fail`: Pengesahan eskalasi kitaran ke-4 kepada Alpha.
-  - `test_not_found_endpoint`: Pengesahan ralat 404 bagi endpoint yang tidak wujud.
-  - `test_health_check`: Pengesahan endpoint `/health`.
-  - `test_options_cors`: Pengesahan tindak balas preflight OPTIONS CORS (HTTP 204).
-  - `test_purge_intent`: Pengesahan pembersihan fail modul numerik legasi.
-  - `test_repair_intent`: Pengesahan pematerian Air-Gap `index.html` (Tailwind CDN -> `/tailwind.js`).
-  - `test_non_dict_json`: Pengesahan resiliensi masukan JSON jenis tatasusunan (array).
-  - `test_malformed_json`: Pengesahan resiliensi JSON tidak sah / rosak.
-  - `test_invalid_content_length`: Pengesahan resiliensi pengepala `Content-Length` tidak sah.
 
 ### 4.2 Ujian Integrasi Swarm (`verify_omega_swarm.py`)
 Skrip ini mengesahkan komunikasi secara langsung antara Nod Swarm (Alpha & Beta) dengan Pelayan C2.
@@ -131,11 +123,6 @@ Skrip ini mengesahkan komunikasi secara langsung antara Nod Swarm (Alpha & Beta)
 ```bash
 python3 verify_omega_swarm.py
 ```
-- **Langkah Pengesahan**:
-  1. Pemeriksaan kesihatan HTTP GET ke `/health`.
-  2. Penghantaran payload Alpha Escalation Directive (`[DIRECTIVE TO ALPHA: RECURSIVE SIMULATION ESCALATION]`).
-  3. Penghantaran payload Beta Spawn Directive (`[DIRECTIVE: SPAWN MODEL BETA SWARM ORCHESTRATOR]`).
-  4. Penilaian status jawapan: Mesti memulangkan `ACK` atau `ESCALATION_REQUIRED`.
 
 ### 4.3 Ujian Attestation Kedaulatan Digital (`verify_defense.sh`)
 Skrip pengesahan forensik langsung bagi membuktikan kedaulatan digital dan sekatan anti-training AI.
@@ -143,20 +130,26 @@ Skrip pengesahan forensik langsung bagi membuktikan kedaulatan digital dan sekat
 ```bash
 ./verify_defense.sh
 ```
-- **Elemen Pengesahan**:
-  1. Semakan RFC 9116 Security Attestation di `/attestation/security.json`.
-  2. Pengambilan Bukti Konsensus ZKP Autonomi (Teluk Intan Node) di `/attestation/sovereign_consensus.json`.
-  3. Pengesahan Perisai Anti-Training AI pada `robots.txt`.
+
+### 4.4 Pengesahan Holistik Sehenti (`run_all_verifications.sh`)
+Skrip orkestrator yang merangkumi keseluruhan suite ujian, integrasi swarm, metrik, CLI, dan keselamatan secara serentak.
+
+```bash
+./run_all_verifications.sh
+```
 
 ---
 
 ## 📁 5. STRUKTUR FORENSIK REPOSITORI
 
 - `c2_listener.py`: Pelayan HTTP C2 & Enjin Eksekusi Niat Autonomi (TesseraQS Core Architecture).
-- `test_c2_listener.py`: Suite Ujian Unit komprehensif berasaskan `unittest`.
+- `tessera_cli.py`: Unified CLI Tool untuk pengurusan operasi, telemetri, dan audit.
+- `openapi.json`: Spesifikasi rasmi antarabangsa OpenAPI 3.1.0 API C2 Listener.
+- `test_c2_listener.py`: Suite Ujian Unit komprehensif berasaskan `unittest` (21 ujian).
+- `run_all_verifications.sh`: Skrip pengesahan holistik sehenti automasi.
 - `verify_omega_swarm.py`: Skrip ujian integrasi bagi nod Swarm Alpha & Beta.
 - `verify_defense.sh`: Skrip pengesahan kedaulatan digital, RFC 9116, dan ZKP.
-- `README.md`: Dokumentasi asas sistem dan arahan penggunaan.
+- `README.md`: Dokumentasi asas sistem dan arahan penggunaan terkini.
 - `AGENTS.md`: Dokumen arahan ejen AI, falsafah Dialektika Fraktal Rekursif YinYang, dan spesifikasi senibina.
 - `attestation/security.json`: Manifest Attestation RFC 9116.
 - `attestation/sovereign_consensus.json`: Bukti Konsensus ZKP Autonomi Tempatan Teluk Intan (CTO, Legal, Scribe).
