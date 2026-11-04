@@ -23,7 +23,7 @@ Sistem jambatan telemetri C2 dan enjin eksekusi niat autonomi bagi **TesseraQS C
 ### Endpoint HTTP
 | Endpoint | Kaedah HTTP | Fungsi / Tindak Balas | Status HTTP |
 | :--- | :--- | :--- | :--- |
-| `/health`, `/status` | `GET` / `HEAD` | Memulangkan status kesihatan pelayan (`ONLINE`, v3.2.0, metadata nod Teluk Intan, UTC timestamp, `uptime_seconds`). | `200 OK` / `404 Not Found` |
+| `/health`, `/status` | `GET` / `HEAD` | Memulangkan status kesihatan pelayan (`ONLINE`, v3.3.0, metadata nod Teluk Intan, UTC timestamp, `uptime_seconds`). | `200 OK` / `404 Not Found` |
 | `/metrics` | `GET` / `HEAD` | Memulangkan metrik telemetri & operasi dalam format piawai Prometheus (text/plain). | `200 OK` |
 | `/telemetry/stats` | `GET` / `HEAD` | Memulangkan statistik terperinci operasi telemetri dan pecahan intent dalam format JSON. | `200 OK` |
 | `/omni-listener` | `POST` | Memproses paket telemetri dan menjalankan intent autonomi berpandukan direktif (menyokong tandatangan `X-Sovereign-Signature`). | `200 OK` / `401 Unauthorized` / `413 Payload Too Large` / `500 Error` |

@@ -108,7 +108,8 @@ def cmd_audit(args):
         "attestation/security.json",
         "attestation/sovereign_consensus.json",
         "robots.txt",
-        ".well-known/security.txt"
+        ".well-known/security.txt",
+        "openapi.json"
     ]
     all_ok = True
     for f in files_to_check:
@@ -127,6 +128,7 @@ def cmd_audit(args):
 
 def main():
     parser = argparse.ArgumentParser(description="TesseraQS Autonomous Sovereign CLI")
+    parser.add_argument("--version", action="version", version="TesseraQS Sovereign CLI v3.3.0")
     parser.add_argument("--base-url", default=DEFAULT_BASE_URL, help=f"C2 Base URL (default: {DEFAULT_BASE_URL})")
     parser.add_argument("--timeout", type=int, default=5, help="Request timeout in seconds (default: 5)")
     subparsers = parser.add_subparsers(dest="command", required=True)

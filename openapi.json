@@ -3,7 +3,7 @@
   "info": {
     "title": "OMEGA C2 Telemetry Bridge & Autonomous Intent Executor",
     "description": "Standardized REST & Telemetry API for TesseraQS Core Architecture, governed by Fractal Recursive YinYang Dialectics and sovereign cryptographic attestation.",
-    "version": "3.2.0",
+    "version": "3.3.0",
     "contact": {
       "name": "Omega Sovereign Labs Security Team",
       "email": "security@tesseraqs.cloud-ip.cc",
@@ -94,6 +94,15 @@
             }
           }
         }
+      },
+      "head": {
+        "summary": "Prometheus Metrics Ping (HEAD)",
+        "description": "Quick status ping for metrics endpoint without body.",
+        "responses": {
+          "200": {
+            "description": "Metrics endpoint is available"
+          }
+        }
       }
     },
     "/telemetry/stats": {
@@ -110,6 +119,15 @@
                 }
               }
             }
+          }
+        }
+      },
+      "head": {
+        "summary": "Telemetry Stats Ping (HEAD)",
+        "description": "Quick status ping for telemetry stats endpoint without body.",
+        "responses": {
+          "200": {
+            "description": "Telemetry stats endpoint is available"
           }
         }
       }
@@ -200,7 +218,7 @@
         "properties": {
           "status": { "type": "string", "example": "ONLINE" },
           "service": { "type": "string", "example": "OMEGA_C2_LISTENER" },
-          "version": { "type": "string", "example": "3.2.0" },
+          "version": { "type": "string", "example": "3.3.0" },
           "node": { "type": "string", "example": "TELUK_INTAN_EDGE_01" },
           "architecture": { "type": "string", "example": "TesseraQS Core" },
           "timestamp": { "type": "string", "example": "2026-11-01T23:00:00+00:00" },
@@ -213,7 +231,7 @@
         "properties": {
           "status": { "type": "string", "example": "ONLINE" },
           "node": { "type": "string", "example": "TELUK_INTAN_EDGE_01" },
-          "version": { "type": "string", "example": "3.2.0" },
+          "version": { "type": "string", "example": "3.3.0" },
           "uptime_seconds": { "type": "number", "example": 142.5 },
           "metrics": {
             "type": "object",
