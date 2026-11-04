@@ -61,7 +61,7 @@ Modul teras sistem berada pada `c2_listener.py`. Ia bertindak sebagai Pelayan HT
 ### 3.1 Endpoints Pelayan
 | Endpoint | Kaedah HTTP | Fungsi / Tindak Balas | Status HTTP |
 | :--- | :--- | :--- | :--- |
-| `/health`, `/status` | `GET` / `HEAD` | Memulangkan status kesihatan pelayan: `{"status": "ONLINE", "service": "OMEGA_C2_LISTENER", "version": "3.2.0", "node": "TELUK_INTAN_EDGE_01", "architecture": "TesseraQS Core", "timestamp": "...", "uptime_seconds": ...}` | `200 OK` / `404 Not Found` |
+| `/health`, `/status` | `GET` / `HEAD` | Memulangkan status kesihatan pelayan: `{"status": "ONLINE", "service": "OMEGA_C2_LISTENER", "version": "3.3.0", "node": "TELUK_INTAN_EDGE_01", "architecture": "TesseraQS Core", "timestamp": "...", "uptime_seconds": ...}` | `200 OK` / `404 Not Found` |
 | `/metrics` | `GET` / `HEAD` | Memulangkan metrik telemetri & nod dalam format teks Prometheus. | `200 OK` |
 | `/telemetry/stats` | `GET` / `HEAD` | Memulangkan statistik penggunaan memori, jumlah panggilan, dan pecahan intent dalam format JSON. | `200 OK` |
 | `/omni-listener` | `POST` | Memproses paket telemetri dan menjalankan intent autonomi mengikut kata kunci direktif. | `200 OK` / `401 Unauthorized` / `413 Payload Too Large` / `500 Error` |

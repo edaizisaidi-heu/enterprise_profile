@@ -118,7 +118,7 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({
                 "status": "ONLINE",
                 "service": "OMEGA_C2_LISTENER",
-                "version": "3.2.0",
+                "version": "3.3.0",
                 "node": "TELUK_INTAN_EDGE_01",
                 "architecture": "TesseraQS Core",
                 "timestamp": get_utc_timestamp(),
@@ -129,7 +129,7 @@ class C2Handler(http.server.BaseHTTPRequestHandler):
             stats = {
                 "status": "ONLINE",
                 "node": "TELUK_INTAN_EDGE_01",
-                "version": "3.2.0",
+                "version": "3.3.0",
                 "uptime_seconds": get_uptime_seconds(),
                 "metrics": METRICS,
                 "timestamp": get_utc_timestamp()

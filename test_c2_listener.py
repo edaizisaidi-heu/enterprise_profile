@@ -84,7 +84,7 @@ class TestC2Listener(unittest.TestCase):
             data = json.loads(resp.read().decode("utf-8"))
             self.assertEqual(data.get("status"), "ONLINE")
             self.assertEqual(data.get("service"), "OMEGA_C2_LISTENER")
-            self.assertEqual(data.get("version"), "3.2.0")
+            self.assertEqual(data.get("version"), "3.3.0")
             self.assertEqual(data.get("node"), "TELUK_INTAN_EDGE_01")
             self.assertEqual(data.get("architecture"), "TesseraQS Core")
             self.assertIn("timestamp", data)
@@ -221,6 +221,25 @@ class TestC2Listener(unittest.TestCase):
         sig = tessera_cli.compute_signature(test_payload, "testkey")
         self.assertTrue(len(sig) > 0)
         self.assertEqual(tessera_cli.compute_signature(test_payload, ""), "")
+
+    def test_tessera_cli_audit_and_version(self):
+        # Test CLI audit function directly
+        class Args:
+            pass
+        args = Args()
+        # Should complete without error when all sovereign files exist
+        tessera_cli.cmd_audit(args)
+
+    def test_metrics_head_request(self):
+        req_metrics = urllib.request.Request(f"{self.base_url}/metrics", method="HEAD")
+        with urllib.request.urlopen(req_metrics, timeout=3) as resp:
+            self.assertEqual(resp.status, 200)
+            self.assertIn("text/plain", resp.headers.get("Content-Type", ""))
+
+        req_stats = urllib.request.Request(f"{self.base_url}/telemetry/stats", method="HEAD")
+        with urllib.request.urlopen(req_stats, timeout=3) as resp:
+            self.assertEqual(resp.status, 200)
+            self.assertIn("application/json", resp.headers.get("Content-Type", ""))
 
     def test_non_dict_json(self):
         status, data, _ = self._send_post("/omni-listener", [1, 2, 3])
