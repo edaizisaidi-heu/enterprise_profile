@@ -13,6 +13,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://tesseraqs.cloud-ip.cc/ca.crt</loc>
+    <lastmod>2026-11-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://tesseraqs.cloud-ip.cc/security.json</loc>
     <lastmod>2026-11-01</lastmod>
     <changefreq>monthly</changefreq>

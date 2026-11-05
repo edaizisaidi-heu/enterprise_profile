@@ -230,6 +230,29 @@ class TestC2Listener(unittest.TestCase):
         # Should complete without error when all sovereign files exist
         tessera_cli.cmd_audit(args)
 
+    def test_sovereign_ca_certificate(self):
+        # Verify ca.crt exists, is non-empty, and contains valid PEM certificate markers
+        self.assertTrue(os.path.exists("ca.crt"))
+        with open("ca.crt", "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("-----BEGIN CERTIFICATE-----", content)
+        self.assertIn("-----END CERTIFICATE-----", content)
+
+    def test_tessera_cli_argument_parsing(self):
+        import sys
+        old_argv = sys.argv
+
+        try:
+            # 1. Global flag placement
+            sys.argv = ["tessera_cli.py", "--base-url", "http://127.0.0.1:5001", "audit"]
+            tessera_cli.main()
+
+            # 2. Subcommand flag placement
+            sys.argv = ["tessera_cli.py", "audit", "--base-url", "http://127.0.0.1:5001"]
+            tessera_cli.main()
+        finally:
+            sys.argv = old_argv
+
     def test_metrics_head_request(self):
         req_metrics = urllib.request.Request(f"{self.base_url}/metrics", method="HEAD")
         with urllib.request.urlopen(req_metrics, timeout=3) as resp:
