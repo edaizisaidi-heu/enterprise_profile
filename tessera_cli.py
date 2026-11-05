@@ -127,23 +127,29 @@ def cmd_audit(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="TesseraQS Autonomous Sovereign CLI")
+    # Parent parser for shared options (--base-url, --timeout) to support both global and subcommand flags
+    parent_parser = argparse.ArgumentParser(add_help=False)
+    parent_parser.add_argument("--base-url", default=DEFAULT_BASE_URL, help=f"C2 Base URL (default: {DEFAULT_BASE_URL})")
+    parent_parser.add_argument("--timeout", type=int, default=5, help="Request timeout in seconds (default: 5)")
+
+    parser = argparse.ArgumentParser(
+        description="TesseraQS Autonomous Sovereign CLI",
+        parents=[parent_parser]
+    )
     parser.add_argument("--version", action="version", version="TesseraQS Sovereign CLI v3.3.0")
-    parser.add_argument("--base-url", default=DEFAULT_BASE_URL, help=f"C2 Base URL (default: {DEFAULT_BASE_URL})")
-    parser.add_argument("--timeout", type=int, default=5, help="Request timeout in seconds (default: 5)")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Health command
-    p_health = subparsers.add_parser("health", help="Check C2 Listener health status")
+    p_health = subparsers.add_parser("health", parents=[parent_parser], help="Check C2 Listener health status")
     p_health.set_defaults(func=cmd_health)
 
     # Metrics command
-    p_metrics = subparsers.add_parser("metrics", help="Fetch node metrics and stats")
+    p_metrics = subparsers.add_parser("metrics", parents=[parent_parser], help="Fetch node metrics and stats")
     p_metrics.add_argument("--format", choices=["json", "prometheus"], default="json", help="Output format")
     p_metrics.set_defaults(func=cmd_metrics)
 
     # Send telemetry command
-    p_send = subparsers.add_parser("send", help="Send telemetry or directive to /omni-listener")
+    p_send = subparsers.add_parser("send", parents=[parent_parser], help="Send telemetry or directive to /omni-listener")
     p_send.add_argument("--directive", required=True, help="Directive string")
     p_send.add_argument("--module", default="tessera_cli", help="Source module name")
     p_send.add_argument("--intent", default="USER_DIRECTIVE", help="Intent descriptor")
@@ -151,7 +157,7 @@ def main():
     p_send.set_defaults(func=cmd_send)
 
     # Audit command
-    p_audit = subparsers.add_parser("audit", help="Verify local sovereign defense artifacts")
+    p_audit = subparsers.add_parser("audit", parents=[parent_parser], help="Verify local sovereign defense artifacts")
     p_audit.set_defaults(func=cmd_audit)
 
     parsed = parser.parse_args()
