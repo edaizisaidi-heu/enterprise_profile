@@ -109,8 +109,9 @@ python3 verify_omega_swarm.py
 
 ## 🛡️ Keselamatan & Kedaulatan Digital
 
-- **OpenAPI 3.1 Specification**: Didokumentasikan secara rasmi pada `/openapi.json`.
-- **RFC 9116 Attestation**: Disahkan pada `/.well-known/security.txt` dan `/security.json`.
+- **OpenAPI 3.1 Specification**: Didokumentasikan secara rasmi pada `/openapi.json` lengkap dengan skema `securitySchemes` HMAC-SHA256 (`SovereignSignature`).
+- **Sijil Root CA Berdaulat (RSA-4096)**: Sijil X.509 RSA-4096 berdaulat pada `/ca.crt` sebagai punca kepercayaan enkripsi (*root of trust*).
+- **RFC 9116 Attestation**: Disahkan pada `/.well-known/security.txt`, `/security.txt`, dan `/security.json`.
 - **Konsensus ZKP Autonomi**: Bukti konsensus tempatan Teluk Intan Node pada `/attestation/sovereign_consensus.json` (Peranan: CTO, Legal, Scribe).
 - **Anti-AI Training Shield**: Sekatan bot pengutip data & latihan AI dikuatkuasakan via `robots.txt`.
-- **Integriti & Kedaulatan Empirikal**: 100% kedaulatan terbukti secara empirikal melalui pengesahan forensik langsung.
+- **Integriti & Kedaulatan Empirikal**: 100% kedaulatan terbukti secara empirikal melalui pengesahan forensik langsung (`verify_defense.sh`).

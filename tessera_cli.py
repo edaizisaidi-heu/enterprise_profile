@@ -105,6 +105,7 @@ def cmd_audit(args):
     print("==================================================")
     files_to_check = [
         "c2_listener.py",
+        "ca.crt",
         "attestation/security.json",
         "attestation/sovereign_consensus.json",
         "robots.txt",

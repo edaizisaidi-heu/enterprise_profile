@@ -230,6 +230,30 @@ class TestC2Listener(unittest.TestCase):
         # Should complete without error when all sovereign files exist
         tessera_cli.cmd_audit(args)
 
+    def test_tessera_cli_audit_detects_missing_file(self):
+        # Verify that cmd_audit detects missing defense artifacts (e.g. ca.crt)
+        class Args:
+            pass
+        args = Args()
+        import io
+        import sys
+        from unittest.mock import patch
+
+        with patch("os.path.exists", side_effect=lambda f: f != "ca.crt"):
+            with patch("sys.stderr", new=io.StringIO()):
+                with self.assertRaises(SystemExit) as cm:
+                    tessera_cli.cmd_audit(args)
+                self.assertEqual(cm.exception.code, 1)
+
+    def test_openapi_security_schemes(self):
+        with open("openapi.json", "r", encoding="utf-8") as f:
+            spec = json.load(f)
+        self.assertIn("securitySchemes", spec.get("components", {}))
+        self.assertIn("SovereignSignature", spec["components"]["securitySchemes"])
+        self.assertEqual(spec["components"]["securitySchemes"]["SovereignSignature"]["name"], "X-Sovereign-Signature")
+        omni_post = spec["paths"]["/omni-listener"]["post"]
+        self.assertIn("security", omni_post)
+
     def test_sovereign_ca_certificate(self):
         # Verify ca.crt exists, is non-empty, and contains valid PEM certificate markers
         self.assertTrue(os.path.exists("ca.crt"))
