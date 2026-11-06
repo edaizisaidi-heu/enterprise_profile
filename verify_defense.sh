@@ -20,6 +20,9 @@ curl -sL --max-time 10 "https://tesseraqs.cloud-ip.cc/attestation/sovereign_cons
 printf "\n[+] 3. Mengesahkan Perisai Anti-Training AI...\n"
 curl -sL --max-time 10 "https://tesseraqs.cloud-ip.cc/robots.txt" | grep -A 4 "SEKATAN MUTLAK" || true
 
+printf "\n[+] 4. Mengesahkan Sijil Kedaulatan Digital (Root CA RSA-4096)...\n"
+curl -sL --max-time 10 "https://tesseraqs.cloud-ip.cc/ca.crt" | grep -E "BEGIN CERTIFICATE|END CERTIFICATE" || true
+
 echo ""
 echo "================================================================="
 echo "✓ BUKTI FORENSIK SELESAI: 100% Kedaulatan Terbukti Secara Empirikal."

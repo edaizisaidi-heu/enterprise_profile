@@ -145,7 +145,8 @@ Skrip orkestrator yang merangkumi keseluruhan suite ujian, integrasi swarm, metr
 - `c2_listener.py`: Pelayan HTTP C2 & Enjin Eksekusi Niat Autonomi (TesseraQS Core Architecture).
 - `tessera_cli.py`: Unified CLI Tool untuk pengurusan operasi, telemetri, dan audit.
 - `openapi.json`: Spesifikasi rasmi antarabangsa OpenAPI 3.1.0 API C2 Listener.
-- `test_c2_listener.py`: Suite Ujian Unit komprehensif berasaskan `unittest` (21 ujian).
+- `ca.crt`: Sijil Root CA X.509 RSA-4096 Kedaulatan Digital (Teluk Intan Node).
+- `test_c2_listener.py`: Suite Ujian Unit komprehensif berasaskan `unittest` (27 ujian).
 - `run_all_verifications.sh`: Skrip pengesahan holistik sehenti automasi.
 - `verify_omega_swarm.py`: Skrip ujian integrasi bagi nod Swarm Alpha & Beta.
 - `verify_defense.sh`: Skrip pengesahan kedaulatan digital, RFC 9116, dan ZKP.

@@ -136,6 +136,12 @@
       "post": {
         "summary": "Omni Telemetry & Autonomous Intent Dispatcher",
         "description": "Processes inbound telemetry packet and triggers autonomous self-healing, module purge, or recursive simulation workflows.",
+        "security": [
+          {},
+          {
+            "SovereignSignature": []
+          }
+        ],
         "parameters": [
           {
             "name": "X-Sovereign-Signature",
@@ -212,6 +218,14 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "SovereignSignature": {
+        "type": "apiKey",
+        "name": "X-Sovereign-Signature",
+        "in": "header",
+        "description": "HMAC-SHA256 cryptographic signature header computed using SOVEREIGN_SECRET_KEY"
+      }
+    },
     "schemas": {
       "HealthResponse": {
         "type": "object",
