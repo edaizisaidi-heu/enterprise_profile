@@ -338,5 +338,36 @@ class TestC2Listener(unittest.TestCase):
         sibling_prefix_path = c2_listener.MODULES_DIR.rstrip("/\\") + "_extra"
         self.assertFalse(c2_listener.is_safe_path(c2_listener.MODULES_DIR, sibling_prefix_path))
 
+    def test_sitemap_and_page_links_integrity(self):
+        # Verify that all URLs listed in sitemap.xml correspond to files present in repo
+        self.assertTrue(os.path.exists("sitemap.xml"))
+        with open("sitemap.xml", "r", encoding="utf-8") as f:
+            sitemap_content = f.read()
+
+        import xml.etree.ElementTree as ET
+        root = ET.fromstring(sitemap_content)
+        namespace = {"ns": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+        locs = [elem.text for elem in root.findall(".//ns:loc", namespace)]
+        self.assertGreater(len(locs), 0)
+
+        # Check each loc maps to valid local artifact
+        base = "https://tesseraqs.cloud-ip.cc/"
+        for loc in locs:
+            self.assertTrue(loc.startswith(base))
+            rel_path = loc[len(base):]
+            if not rel_path or rel_path == "":
+                local_file = "index.html"
+            else:
+                local_file = rel_path
+            self.assertTrue(os.path.exists(local_file), f"Sitemap URL missing local artifact: {local_file}")
+
+        # Check that index.html contains footer links
+        with open("index.html", "r", encoding="utf-8") as f:
+            idx = f.read()
+        self.assertIn("/security.html", idx)
+        self.assertIn("/privacy.html", idx)
+        self.assertIn("/terms.html", idx)
+        self.assertIn("/openapi.json", idx)
+
 if __name__ == "__main__":
     unittest.main()
