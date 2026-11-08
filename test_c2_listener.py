@@ -364,10 +364,19 @@ class TestC2Listener(unittest.TestCase):
         # Check that index.html contains footer links
         with open("index.html", "r", encoding="utf-8") as f:
             idx = f.read()
-        self.assertIn("/security.html", idx)
-        self.assertIn("/privacy.html", idx)
-        self.assertIn("/terms.html", idx)
-        self.assertIn("/openapi.json", idx)
+        self.assertIn("security.html", idx)
+        self.assertIn("privacy.html", idx)
+        self.assertIn("terms.html", idx)
+        self.assertIn("openapi.json", idx)
+        self.assertIn("portal.html", idx)
+        self.assertIn("research.html", idx)
+
+        # Check newly created pages exist and contain cross links
+        for page in ["portal.html", "research.html", "security.html", "privacy.html", "terms.html"]:
+            self.assertTrue(os.path.exists(page), f"Page {page} does not exist")
+            with open(page, "r", encoding="utf-8") as pf:
+                content = pf.read()
+                self.assertIn("index.html", content)
 
 if __name__ == "__main__":
     unittest.main()
