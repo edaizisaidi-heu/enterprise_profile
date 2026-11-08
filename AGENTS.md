@@ -62,9 +62,11 @@ Modul teras sistem berada pada `c2_listener.py`. Ia bertindak sebagai Pelayan HT
 | Endpoint | Kaedah HTTP | Fungsi / Tindak Balas | Status HTTP |
 | :--- | :--- | :--- | :--- |
 | `/health`, `/status` | `GET` / `HEAD` | Memulangkan status kesihatan pelayan: `{"status": "ONLINE", "service": "OMEGA_C2_LISTENER", "version": "3.3.0", "node": "TELUK_INTAN_EDGE_01", "architecture": "TesseraQS Core", "timestamp": "...", "uptime_seconds": ...}` | `200 OK` / `404 Not Found` |
-| `/metrics` | `GET` / `HEAD` | Memulangkan metrik telemetri & nod dalam format teks Prometheus. | `200 OK` |
+| `/ready` | `GET` / `HEAD` | Semakan kesiapsiagaan komponen nod (Readiness Probe) bagi artifak kedaulatan dan direktori modul. | `200 OK` / `503 Service Unavailable` |
+| `/health/detailed` | `GET` / `HEAD` | Diagnostik mendalam status integriti 7 artifak pertahanan, konfigurasi rate limiting, dan status anti-replay. | `200 OK` |
+| `/metrics` | `GET` / `HEAD` | Memulangkan metrik telemetri & nod dalam format teks Prometheus termasuk histogram latensi. | `200 OK` |
 | `/telemetry/stats` | `GET` / `HEAD` | Memulangkan statistik penggunaan memori, jumlah panggilan, dan pecahan intent dalam format JSON. | `200 OK` |
-| `/omni-listener` | `POST` | Memproses paket telemetri dan menjalankan intent autonomi mengikut kata kunci direktif. | `200 OK` / `401 Unauthorized` / `413 Payload Too Large` / `500 Error` |
+| `/omni-listener` | `POST` | Memproses paket telemetri dan menjalankan intent autonomi mengikut kata kunci direktif (menyokong tandatangan `X-Sovereign-Signature`, `X-Sovereign-Timestamp`, `X-Sovereign-Nonce`). | `200 OK` / `401 Unauthorized` / `413 Payload Too Large` / `429 Too Many Requests` / `500 Error` |
 | `/omni-listener` | `OPTIONS` | CORS Preflight check. | `204 No Content` |
 | *Kaedah Tidak Dibenarkan* | `PUT`, `DELETE`, `PATCH` | Memulangkan ralat kaedah tidak dibenarkan. | `405 Method Not Allowed` |
 | *Endpoint Luar* | Sebarang | Memulangkan ralat endpoint tidak wujud. | `404 Not Found` |
@@ -103,6 +105,11 @@ Enjin `/omni-listener` menilai medan `directive` dalam payload JSON masukan meng
 - `C2_BASE_URL`: URL asas C2 bagi ujian integrasi (Default: `http://127.0.0.1:5000`).
 - `C2_URL`: URL penuh endpoint Omni Listener (Default: `${C2_BASE_URL}/omni-listener`).
 - `SOVEREIGN_SECRET_KEY`: Kunci rahsia HMAC-SHA256 bagi mengesahkan integriti direktif (Pilihan).
+- `MAX_REPLAY_WINDOW_SECONDS`: Toleransi masa anti-replay dalam saat (Default: `300`).
+- `NONCE_CACHE_TTL`: Tempoh simpanan cache nonce anti-replay dalam saat (Default: `600`).
+- `RATE_LIMIT_ENABLED`: Mengaktifkan had kadar token-bucket (Default: `0`).
+- `RATE_LIMIT_RPS`: Kadar pertambahan token per saat (Default: `50.0`).
+- `RATE_LIMIT_BURST`: Kapasiti token burst maksimum per IP (Default: `100.0`).
 
 ---
 

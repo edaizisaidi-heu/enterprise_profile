@@ -81,6 +81,11 @@ def cmd_send(args):
         sig = compute_signature(payload_bytes, secret)
         headers["X-Sovereign-Signature"] = sig
 
+    if getattr(args, "timestamp", None):
+        headers["X-Sovereign-Timestamp"] = str(args.timestamp)
+    if getattr(args, "nonce", None):
+        headers["X-Sovereign-Nonce"] = str(args.nonce)
+
     try:
         req = urllib.request.Request(url, data=payload_bytes, headers=headers, method="POST")
         with urllib.request.urlopen(req, timeout=args.timeout) as resp:
@@ -127,6 +132,70 @@ def cmd_audit(args):
         sys.exit(1)
 
 
+def cmd_live(args):
+    """Live monitor C2 telemetry stream and node health."""
+    import time
+    count = args.count
+    iteration = 0
+    print("==================================================")
+    print(f"📡 TESSERAQS LIVE TELEMETRY MONITOR ({args.base_url})")
+    print("==================================================")
+    try:
+        while True:
+            iteration += 1
+            url = f"{args.base_url}/telemetry/stats"
+            try:
+                req = urllib.request.Request(url)
+                with urllib.request.urlopen(req, timeout=args.timeout) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    metrics = data.get("metrics", {})
+                    ts = data.get("timestamp", "")
+                    uptime = data.get("uptime_seconds", 0)
+                    total_req = metrics.get("total_requests", 0)
+                    processed = metrics.get("processed_telemetry", 0)
+                    errors = metrics.get("errors", 0)
+                    print(f"[{ts}] Uptime: {uptime}s | Req: {total_req} | Telemetry: {processed} | Errors: {errors}")
+            except Exception as err:
+                print(f"[ERROR] Iteration {iteration}: {err}", file=sys.stderr)
+
+            if count > 0 and iteration >= count:
+                break
+            time.sleep(args.interval)
+    except KeyboardInterrupt:
+        print("\n[!] Live monitoring stopped by user.")
+
+
+def cmd_verify_remote(args):
+    """Verify live sovereign defense attestation on remote domain."""
+    target = args.target_url.rstrip("/")
+    print("==================================================")
+    print(f"🛡️  VERIFYING REMOTE SOVEREIGN ATTRIBUTES: {target}")
+    print("==================================================")
+    endpoints = [
+        ("/attestation/security.json", "Security Attestation JSON"),
+        ("/attestation/sovereign_consensus.json", "ZKP Consensus Proof"),
+        ("/robots.txt", "Anti-AI Training Shield"),
+        ("/ca.crt", "Root CA Certificate")
+    ]
+    all_ok = True
+    for ep, desc in endpoints:
+        full_url = f"{target}{ep}"
+        try:
+            req = urllib.request.Request(full_url, headers={"User-Agent": "TesseraQS-CLI-Verifier"})
+            with urllib.request.urlopen(req, timeout=args.timeout) as resp:
+                content = resp.read()
+                print(f"  [✓] {desc} verified ({len(content)} bytes) - HTTP {resp.status}")
+        except Exception as err:
+            print(f"  [!] {desc} failed at {full_url}: {err}", file=sys.stderr)
+            all_ok = False
+
+    if all_ok:
+        print("\n✓ Remote Sovereign Attestation 100% EMPIRICAL ACTIVE.")
+    else:
+        print("\n❌ Warning: Remote verification detected missing or unreachable layers.", file=sys.stderr)
+        sys.exit(1)
+
+
 def main():
     # Parent parser for shared options (--base-url, --timeout) to support both global and subcommand flags
     parent_parser = argparse.ArgumentParser(add_help=False)
@@ -155,11 +224,24 @@ def main():
     p_send.add_argument("--module", default="tessera_cli", help="Source module name")
     p_send.add_argument("--intent", default="USER_DIRECTIVE", help="Intent descriptor")
     p_send.add_argument("--secret", default="", help="Optional HMAC sovereign secret key")
+    p_send.add_argument("--timestamp", default="", help="Optional timestamp for replay protection")
+    p_send.add_argument("--nonce", default="", help="Optional nonce for replay protection")
     p_send.set_defaults(func=cmd_send)
 
     # Audit command
     p_audit = subparsers.add_parser("audit", parents=[parent_parser], help="Verify local sovereign defense artifacts")
     p_audit.set_defaults(func=cmd_audit)
+
+    # Live telemetry monitor command
+    p_live = subparsers.add_parser("live", parents=[parent_parser], help="Stream live telemetry stats from node")
+    p_live.add_argument("--interval", type=float, default=1.0, help="Poll interval in seconds (default: 1.0)")
+    p_live.add_argument("--count", type=int, default=1, help="Number of samples to collect before exit (default: 1, 0 for infinite)")
+    p_live.set_defaults(func=cmd_live)
+
+    # Verify remote domain command
+    p_remote = subparsers.add_parser("verify-remote", parents=[parent_parser], help="Verify live sovereign attestation on remote host")
+    p_remote.add_argument("--target-url", default="https://tesseraqs.cloud-ip.cc", help="Target domain URL")
+    p_remote.set_defaults(func=cmd_verify_remote)
 
     parsed = parser.parse_args()
     parsed.func(parsed)

@@ -52,6 +52,61 @@
         }
       }
     },
+    "/ready": {
+      "get": {
+        "summary": "Node Readiness Probe",
+        "description": "Returns readiness status verifying core defense artifacts and modules directory accessibility.",
+        "responses": {
+          "200": {
+            "description": "Node is READY",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Node is NOT READY"
+          }
+        }
+      },
+      "head": {
+        "summary": "Node Readiness Ping (HEAD)",
+        "responses": {
+          "200": {
+            "description": "Node is READY"
+          }
+        }
+      }
+    },
+    "/health/detailed": {
+      "get": {
+        "summary": "Detailed Node Health & Audit Matrix",
+        "description": "Comprehensive health, security artifacts audit, rate limiting and anti-replay status.",
+        "responses": {
+          "200": {
+            "description": "Detailed health diagnostics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "summary": "Detailed Health Ping (HEAD)",
+        "responses": {
+          "200": {
+            "description": "Detailed health is available"
+          }
+        }
+      }
+    },
     "/status": {
       "get": {
         "summary": "Node Status Alias",
@@ -151,6 +206,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Sovereign-Timestamp",
+            "in": "header",
+            "required": false,
+            "description": "Optional request timestamp (epoch seconds or ISO 8601) for anti-replay protection.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Sovereign-Nonce",
+            "in": "header",
+            "required": false,
+            "description": "Optional unique random nonce for anti-replay verification.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -170,6 +243,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OmniListenerResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests - Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -239,6 +322,34 @@
           "uptime_seconds": { "type": "number", "example": 142.5 }
         },
         "required": ["status", "service", "version", "node", "architecture", "timestamp"]
+      },
+      "ReadyResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "READY" },
+          "node": { "type": "string", "example": "TELUK_INTAN_EDGE_01" },
+          "modules_dir_accessible": { "type": "boolean", "example": true },
+          "core_artifacts_ready": { "type": "boolean", "example": true },
+          "timestamp": { "type": "string", "example": "2026-11-01T23:00:00+00:00" }
+        },
+        "required": ["status", "node", "modules_dir_accessible", "core_artifacts_ready", "timestamp"]
+      },
+      "DetailedHealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "ONLINE" },
+          "node": { "type": "string", "example": "TELUK_INTAN_EDGE_01" },
+          "version": { "type": "string", "example": "3.3.0" },
+          "architecture": { "type": "string", "example": "TesseraQS Core" },
+          "uptime_seconds": { "type": "number", "example": 142.5 },
+          "artifacts_integrity": { "type": "object" },
+          "sovereignty_level": { "type": "string", "example": "100% EMPIRICAL ACTIVE" },
+          "rate_limiting": { "type": "object" },
+          "anti_replay": { "type": "object" },
+          "metrics_summary": { "type": "object" },
+          "timestamp": { "type": "string", "example": "2026-11-01T23:00:00+00:00" }
+        },
+        "required": ["status", "node", "version", "architecture", "timestamp"]
       },
       "TelemetryStatsResponse": {
         "type": "object",
