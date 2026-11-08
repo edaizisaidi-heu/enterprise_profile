@@ -24,9 +24,11 @@ Sistem jambatan telemetri C2 dan enjin eksekusi niat autonomi bagi **TesseraQS C
 | Endpoint | Kaedah HTTP | Fungsi / Tindak Balas | Status HTTP |
 | :--- | :--- | :--- | :--- |
 | `/health`, `/status` | `GET` / `HEAD` | Memulangkan status kesihatan pelayan (`ONLINE`, v3.3.0, metadata nod Teluk Intan, UTC timestamp, `uptime_seconds`). | `200 OK` / `404 Not Found` |
-| `/metrics` | `GET` / `HEAD` | Memulangkan metrik telemetri & operasi dalam format piawai Prometheus (text/plain). | `200 OK` |
+| `/ready` | `GET` / `HEAD` | Semakan kesiapsiagaan komponen nod (Readiness Probe) bagi artifak keselamatan dan direktori modul. | `200 OK` / `503 Service Unavailable` |
+| `/health/detailed` | `GET` / `HEAD` | Diagnostik mendalam nod, integriti 7 artifak keselamatan, konfigurasi rate limiting, dan status anti-replay. | `200 OK` |
+| `/metrics` | `GET` / `HEAD` | Memulangkan metrik telemetri & operasi dalam format piawai Prometheus (text/plain) termasuk histogram latensi. | `200 OK` |
 | `/telemetry/stats` | `GET` / `HEAD` | Memulangkan statistik terperinci operasi telemetri dan pecahan intent dalam format JSON. | `200 OK` |
-| `/omni-listener` | `POST` | Memproses paket telemetri dan menjalankan intent autonomi berpandukan direktif (menyokong tandatangan `X-Sovereign-Signature`). | `200 OK` / `401 Unauthorized` / `413 Payload Too Large` / `500 Error` |
+| `/omni-listener` | `POST` | Memproses paket telemetri dan menjalankan intent autonomi berpandukan direktif (menyokong tandatangan `X-Sovereign-Signature`, `X-Sovereign-Timestamp`, `X-Sovereign-Nonce`). | `200 OK` / `401 Unauthorized` / `413 Payload Too Large` / `429 Too Many Requests` / `500 Error` |
 | `/omni-listener` | `OPTIONS` | CORS Preflight check. | `204 No Content` |
 | *Kaedah Tidak Dibenarkan* | `PUT`, `DELETE`, `PATCH` | Memulangkan ralat kaedah tidak dibenarkan. | `405 Method Not Allowed` |
 
@@ -60,8 +62,14 @@ python3 tessera_cli.py metrics --format prometheus
 # Hantar telemetri / arahan intent
 python3 tessera_cli.py send --directive "[DIRECTIVE: RECURSIVE SIMULATION]"
 
+# Penstriman status telemetri masa nyata
+python3 tessera_cli.py live --interval 1.0 --count 5
+
 # Audit forensik tempatan
 python3 tessera_cli.py audit
+
+# Verifikasi kedaulatan domain pengeluaran luaran
+python3 tessera_cli.py verify-remote --target-url https://tesseraqs.cloud-ip.cc
 ```
 
 ---
@@ -75,6 +83,11 @@ python3 tessera_cli.py audit
 - `C2_URL`: URL penuh endpoint `/omni-listener` (Default: `${C2_BASE_URL}/omni-listener`).
 - `MAX_PAYLOAD_SIZE`: Had maksimum saiz muatan JSON (Default: `1048576` / 1MB).
 - `SOVEREIGN_SECRET_KEY`: Kunci rahsia HMAC-SHA256 bagi mengesahkan pengepala `X-Sovereign-Signature` (Pilihan).
+- `MAX_REPLAY_WINDOW_SECONDS`: Had tetingkap toleransi masa anti-replay (Default: `300` / 5 minit).
+- `NONCE_CACHE_TTL`: Jangka hayat cache nonce anti-replay dalam saat (Default: `600` / 10 minit).
+- `RATE_LIMIT_ENABLED`: Mengaktifkan had kadar token bucket per IP klien (Default: `0` / ditutup).
+- `RATE_LIMIT_RPS`: Token pengisian semula per saat (Default: `50.0`).
+- `RATE_LIMIT_BURST`: Kapasiti maksimum burst token per IP (Default: `100.0`).
 
 ---
 

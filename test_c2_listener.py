@@ -364,6 +364,100 @@ class TestC2Listener(unittest.TestCase):
         # Check that index.html contains footer links
         with open("index.html", "r", encoding="utf-8") as f:
             idx = f.read()
+        self.assertIn("/security.html", idx)
+        self.assertIn("/privacy.html", idx)
+        self.assertIn("/terms.html", idx)
+        self.assertIn("/openapi.json", idx)
+        self.assertIn("/docs.html", idx)
+
+    def test_ready_and_detailed_health_endpoints(self):
+        # 1. Test /ready endpoint
+        req_ready = urllib.request.Request(f"{self.base_url}/ready")
+        with urllib.request.urlopen(req_ready, timeout=3) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertEqual(data.get("status"), "READY")
+            self.assertTrue(data.get("core_artifacts_ready"))
+
+        # HEAD request for /ready
+        req_ready_head = urllib.request.Request(f"{self.base_url}/ready", method="HEAD")
+        with urllib.request.urlopen(req_ready_head, timeout=3) as resp:
+            self.assertEqual(resp.status, 200)
+
+        # 2. Test /health/detailed endpoint
+        req_det = urllib.request.Request(f"{self.base_url}/health/detailed")
+        with urllib.request.urlopen(req_det, timeout=3) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertEqual(data.get("status"), "ONLINE")
+            self.assertIn("artifacts_integrity", data)
+            self.assertIn("rate_limiting", data)
+            self.assertIn("anti_replay", data)
+
+    def test_anti_replay_protection(self):
+        c2_listener.SEEN_NONCES.clear()
+        import time
+
+        # 1. Fresh valid timestamp & unique nonce -> 200 OK
+        valid_ts = str(time.time())
+        status, data, _ = self._send_post(
+            "/omni-listener",
+            {"directive": "test anti-replay fresh"},
+            headers={"X-Sovereign-Timestamp": valid_ts, "X-Sovereign-Nonce": "nonce-alpha-1"}
+        )
+        self.assertEqual(status, 200)
+
+        # 2. Replay with same nonce -> 401 Unauthorized
+        status, data, _ = self._send_post(
+            "/omni-listener",
+            {"directive": "test anti-replay replay"},
+            headers={"X-Sovereign-Timestamp": valid_ts, "X-Sovereign-Nonce": "nonce-alpha-1"}
+        )
+        self.assertEqual(status, 401)
+        self.assertEqual(data.get("error"), "Unauthorized")
+
+        # 3. Expired timestamp beyond tolerance -> 401 Unauthorized
+        expired_ts = str(time.time() - 1000)
+        status, data, _ = self._send_post(
+            "/omni-listener",
+            {"directive": "test anti-replay expired"},
+            headers={"X-Sovereign-Timestamp": expired_ts, "X-Sovereign-Nonce": "nonce-alpha-2"}
+        )
+        self.assertEqual(status, 401)
+
+    def test_rate_limiting_defense(self):
+        old_enabled = c2_listener.RATE_LIMIT_ENABLED
+        old_burst = c2_listener.RATE_LIMIT_BURST
+        old_rps = c2_listener.RATE_LIMIT_RPS
+        try:
+            c2_listener.RATE_LIMIT_ENABLED = True
+            c2_listener.RATE_LIMIT_BURST = 2.0
+            c2_listener.RATE_LIMIT_RPS = 0.1
+            c2_listener.RATE_LIMIT_BUCKETS.clear()
+
+            # First 2 requests pass burst
+            status1, _, _ = self._send_post("/omni-listener", {"directive": "test rate 1"})
+            status2, _, _ = self._send_post("/omni-listener", {"directive": "test rate 2"})
+            self.assertEqual(status1, 200)
+            self.assertEqual(status2, 200)
+
+            # 3rd request hits 429
+            status3, data3, _ = self._send_post("/omni-listener", {"directive": "test rate 3"})
+            self.assertEqual(status3, 429)
+            self.assertEqual(data3.get("error"), "Too Many Requests")
+        finally:
+            c2_listener.RATE_LIMIT_ENABLED = old_enabled
+            c2_listener.RATE_LIMIT_BURST = old_burst
+            c2_listener.RATE_LIMIT_RPS = old_rps
+            c2_listener.RATE_LIMIT_BUCKETS.clear()
+
+    def test_tessera_cli_live_and_remote_commands(self):
+        class ArgsLive:
+            base_url = self.base_url
+            timeout = 3
+            count = 1
+            interval = 0.1
+        tessera_cli.cmd_live(ArgsLive())
         self.assertIn("security.html", idx)
         self.assertIn("privacy.html", idx)
         self.assertIn("terms.html", idx)

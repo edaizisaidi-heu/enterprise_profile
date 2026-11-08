@@ -35,6 +35,7 @@ echo "[+] 4. Menguji Antaramuka CLI Kedaulatan Autonomi (tessera_cli.py)..."
 python3 tessera_cli.py --base-url "$C2_BASE_URL" health
 python3 tessera_cli.py --base-url "$C2_BASE_URL" metrics --format json
 python3 tessera_cli.py --base-url "$C2_BASE_URL" metrics --format prometheus
+python3 tessera_cli.py --base-url "$C2_BASE_URL" live --count 1
 python3 tessera_cli.py --base-url "$C2_BASE_URL" send --directive "[DIRECTIVE: CLI VERIFICATION TEST]"
 python3 tessera_cli.py audit
 

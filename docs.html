@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TesseraQS API Documentation & Exploration Portal</title>
+  <style>
+    :root {
+      --bg: #050811;
+      --card-bg: #0b1120;
+      --text: #e2e8f0;
+      --accent: #38bdf8;
+      --accent-purple: #c084fc;
+      --border: rgba(56, 189, 248, 0.25);
+      --green: #4ade80;
+    }
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace, sans-serif;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 0 30px rgba(56, 189, 248, 0.1);
+    }
+    header {
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      background: linear-gradient(135deg, #fff, var(--accent), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .endpoint {
+      background: #030712;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      padding: 16px 20px;
+    }
+    .method {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 0.75rem;
+      margin-right: 10px;
+    }
+    .method-get { background: #0284c7; color: #fff; }
+    .method-post { background: #16a34a; color: #fff; }
+    .method-head { background: #d97706; color: #fff; }
+    .path { font-family: monospace; font-size: 1.1rem; color: #fff; font-weight: bold; }
+    .desc { font-size: 0.9rem; color: #94a3b8; margin: 8px 0; }
+    pre {
+      background: #090d16;
+      border: 1px solid #1e293b;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+    footer {
+      border-top: 1px dashed var(--border);
+      padding-top: 20px;
+      margin-top: 30px;
+      font-size: 0.85rem;
+      color: #64748b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>TesseraQS Core Architecture — API Portal</h1>
+        <div style="font-size:0.85rem; color:#94a3b8; margin-top:4px;">100% Air-Gap Sovereign Documentation Engine</div>
+      </div>
+      <div>
+        <span class="badge">OpenAPI 3.1.0</span>
+        <span class="badge" style="border-color:var(--green); color:var(--green);">Air-Gap Ready</span>
+      </div>
+    </header>
+
+    <p style="color:#cbd5e1;">Portal ini mendokumentasikan spesifikasi antaramuka pengaturcaraan (API) bagi <strong>OMEGA C2 Telemetry Bridge &amp; Autonomous Intent Executor</strong>. Kesemua endpoint beroperasi mengikut prinsip Dialektika Fraktal Rekursif YinYang.</p>
+
+    <!-- Endpoints List -->
+    <div class="endpoint">
+      <div><span class="method method-get">GET</span><span class="method method-head">HEAD</span><span class="path">/health &nbsp;|&nbsp; /status</span></div>
+      <div class="desc">Menyemak status kesihatan nod kedaulatan tempatan. Mengembalikan status ONLINE dan maklumat senibina.</div>
+      <pre>{ "status": "ONLINE", "service": "OMEGA_C2_LISTENER", "version": "3.3.0", "node": "TELUK_INTAN_EDGE_01", "architecture": "TesseraQS Core", "uptime_seconds": 142.5 }</pre>
+    </div>
+
+    <div class="endpoint">
+      <div><span class="method method-get">GET</span><span class="method method-head">HEAD</span><span class="path">/ready</span></div>
+      <div class="desc">Kesiapsiagaan komponen nod (Readiness Probe). Mengesahkan integriti fail artifak teras dan kebolehcapaian direktori kerja modul.</div>
+      <pre>{ "status": "READY", "node": "TELUK_INTAN_EDGE_01", "modules_dir_accessible": true, "core_artifacts_ready": true }</pre>
+    </div>
+
+    <div class="endpoint">
+      <div><span class="method method-get">GET</span><span class="method method-head">HEAD</span><span class="path">/health/detailed</span></div>
+      <div class="desc">Diagnostik mendalam nod, integriti kesemua 7 artifak pertahanan kriptografi, parameter rate-limiting, dan status anti-replay.</div>
+      <pre>{ "status": "ONLINE", "sovereignty_level": "100% EMPIRICAL ACTIVE", "artifacts_integrity": { "c2_listener.py": true, "ca.crt": true, ... } }</pre>
+    </div>
+
+    <div class="endpoint">
+      <div><span class="method method-get">GET</span><span class="method method-head">HEAD</span><span class="path">/metrics</span></div>
+      <div class="desc">Eksposisi metrik masa nyata dalam format teks standard Prometheus, merangkumi bilangan permintaan, latensi, dan ralat.</div>
+      <pre>omega_c2_uptime_seconds 142.5
+omega_c2_requests_total 42
+omega_c2_request_duration_seconds_sum 0.084
+omega_c2_request_duration_seconds_count 42</pre>
+    </div>
+
+    <div class="endpoint">
+      <div><span class="method method-get">GET</span><span class="method method-head">HEAD</span><span class="path">/telemetry/stats</span></div>
+      <div class="desc">Statistik penggunaan masa nyata dan pecahan eksekusi intent autonomi dalam format JSON.</div>
+      <pre>{ "status": "ONLINE", "metrics": { "total_requests": 42, "processed_telemetry": 15, "intents_executed": { ... } } }</pre>
+    </div>
+
+    <div class="endpoint">
+      <div><span class="method method-post">POST</span><span class="path">/omni-listener</span></div>
+      <div class="desc">Enjin eksekusi niat autonomi C2. Memproses arahan pantas, pematerian Air-Gap, simulasi rekursif L2-L5, dan eskalasi Alpha. Menyokong tandatangan HMAC-SHA256 (<code>X-Sovereign-Signature</code>), tetingkap cap masa (<code>X-Sovereign-Timestamp</code>), dan keunikan nonce (<code>X-Sovereign-Nonce</code>).</div>
+      <pre>POST /omni-listener HTTP/1.1
+Content-Type: application/json
+X-Sovereign-Signature: &lt;hmac-sha256-hex&gt;
+
+{
+  "directive": "[DIRECTIVE: RECURSIVE SIMULATION]",
+  "module": "omega_swarm_command",
+  "intent": "SWARM_DIRECTIVE"
+}</pre>
+    </div>
+
+    <footer>
+      <div>&copy; 2026 OMEGA SOVEREIGN LABS &mdash; TesseraQS Core Architecture.</div>
+      <div>
+        <a href="/index.html">&larr; Laman Utama</a> &nbsp;|&nbsp;
+        <a href="/openapi.json">Spesifikasi Mentah (openapi.json)</a> &nbsp;|&nbsp;
+        <a href="/security.html">Keselamatan</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
