@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Portal &amp; API Console - OMEGA SOVEREIGN LABS</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #0b0f19; color: #f8fafc; margin: 0; padding: 20px; }
+    .container { max-width: 1100px; margin: 0 auto; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 32px; box-shadow: 0 0 40px rgba(56, 189, 248, 0.1); }
+    h1, h2, h3 { color: #38bdf8; }
+    a { color: #38bdf8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .badge { display: inline-block; padding: 4px 12px; background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 20px; color: #c084fc; font-size: 0.8rem; font-weight: bold; margin-bottom: 12px; }
+    .card { background: #030712; border: 1px solid #1e293b; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    pre { background: #050811; border: 1px solid #1e293b; padding: 16px; border-radius: 6px; overflow-x: auto; color: #00ffcc; font-family: monospace; font-size: 0.85rem; }
+    .endpoint { font-family: monospace; font-weight: bold; color: #4ade80; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #0284c7, #7c3aed); border: none; color: #fff; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 0.85rem; margin-right: 10px; }
+    .btn:hover { text-decoration: none; opacity: 0.9; }
+    footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #1e293b; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 0.85rem; color: #64748b; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div style="margin-bottom: 20px;">
+      <a href="index.html">&larr; Kembali ke Laman Utama</a>
+    </div>
+    <div class="badge">DEVELOPER SUITE // API V3.3.0</div>
+    <h1>Developer Portal &amp; Telemetry Gateway</h1>
+    <p style="color: #94a3b8; line-height: 1.6;">Selamat datang ke Portal Pembangun TesseraQS Core Architecture. Akses gerbang telemetri berdaulat C2, integrasi nodus Swarm, dan spesifikasi OpenAPI 3.1 rasmi.</p>
+
+    <div style="margin: 24px 0;">
+      <a class="btn" href="openapi.json" target="_blank">Lihat OpenAPI 3.1 Spec (JSON)</a>
+      <a class="btn" href="security.html">Polisi Keselamatan RFC 9116</a>
+      <a class="btn" href="research.html">Kertas Penyelidikan Senibina</a>
+    </div>
+
+    <h2>📡 Senarai Endpoint Rasmi C2 Listener</h2>
+    <div class="card">
+      <h3>1. Semakan Kesihatan Nodus</h3>
+      <p><span class="endpoint">GET /health</span> atau <span class="endpoint">GET /status</span></p>
+      <pre>curl -s https://tesseraqs.cloud-ip.cc/health
+# Contoh Respons:
+{
+  "status": "ONLINE",
+  "service": "OMEGA_C2_LISTENER",
+  "version": "3.3.0",
+  "node": "TELUK_INTAN_EDGE_01",
+  "architecture": "TesseraQS Core",
+  "timestamp": "2026-11-07T02:00:00+00:00",
+  "uptime_seconds": 3600.0
+}</pre>
+    </div>
+
+    <div class="card">
+      <h3>2. Metrik Prometheus &amp; Statistik Masa Nyata</h3>
+      <p><span class="endpoint">GET /metrics</span> &bull; <span class="endpoint">GET /telemetry/stats</span></p>
+      <pre># Metrik Prometheus format piawai:
+curl -s https://tesseraqs.cloud-ip.cc/metrics
+
+# Statistik operasi telemetri JSON:
+curl -s https://tesseraqs.cloud-ip.cc/telemetry/stats</pre>
+    </div>
+
+    <div class="card">
+      <h3>3. Penghantaran Niat Autonomi (Omni-Listener)</h3>
+      <p><span class="endpoint">POST /omni-listener</span> (Pengepala: <code>Content-Type: application/json</code>, <code>X-Sovereign-Signature</code> pilihan)</p>
+      <pre>curl -X POST https://tesseraqs.cloud-ip.cc/omni-listener \
+  -H "Content-Type: application/json" \
+  -d '{"module": "dev_portal", "directive": "[DIRECTIVE: RECURSIVE SIMULATION]"}'</pre>
+    </div>
+
+    <div class="card">
+      <h3>🛠️ Penggunaan Alat CLI Rasmi (<code>tessera_cli.py</code>)</h3>
+      <pre># Semakan kesihatan nod
+python3 tessera_cli.py health
+
+# Mengambil metrik telemetri
+python3 tessera_cli.py metrics --format json
+
+# Menghantar direktif telemetri
+python3 tessera_cli.py send --directive "[DIRECTIVE: RECURSIVE SIMULATION]"
+
+# Audit keselamatan kedaulatan tempatan
+python3 tessera_cli.py audit</pre>
+    </div>
+
+    <footer>
+      <div>&copy; 2026 OMEGA SOVEREIGN LABS &mdash; TesseraQS Core Architecture.</div>
+      <div style="display: flex; gap: 15px;">
+        <a href="index.html">Utama</a>
+        <a href="security.html">Keselamatan</a>
+        <a href="privacy.html">Privasi</a>
+        <a href="terms.html">Terma</a>
+        <a href="openapi.json">OpenAPI</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
