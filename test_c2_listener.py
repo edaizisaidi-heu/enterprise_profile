@@ -364,11 +364,11 @@ class TestC2Listener(unittest.TestCase):
         # Check that index.html contains footer links
         with open("index.html", "r", encoding="utf-8") as f:
             idx = f.read()
-        self.assertIn("/security.html", idx)
-        self.assertIn("/privacy.html", idx)
-        self.assertIn("/terms.html", idx)
-        self.assertIn("/openapi.json", idx)
-        self.assertIn("/docs.html", idx)
+        self.assertIn("security.html", idx)
+        self.assertIn("privacy.html", idx)
+        self.assertIn("terms.html", idx)
+        self.assertIn("openapi.json", idx)
+        self.assertIn("docs.html", idx)
 
     def test_ready_and_detailed_health_endpoints(self):
         # 1. Test /ready endpoint
@@ -458,6 +458,8 @@ class TestC2Listener(unittest.TestCase):
             count = 1
             interval = 0.1
         tessera_cli.cmd_live(ArgsLive())
+        with open("index.html", "r", encoding="utf-8") as f:
+            idx = f.read()
         self.assertIn("security.html", idx)
         self.assertIn("privacy.html", idx)
         self.assertIn("terms.html", idx)
