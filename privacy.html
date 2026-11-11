@@ -1,26 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ms">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - OMEGA SOVEREIGN RESEARCH LABS</title>
-    <style>
-        body { font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 40px 20px; line-height: 1.6; }
-        .container { max-width: 800px; margin: auto; background: #1e293b; padding: 40px; border-radius: 12px; }
-        h1, h2 { color: #38bdf8; }
-        a { color: #38bdf8; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dasar Privasi &amp; Kedaulatan Data - OMEGA SOVEREIGN LABS</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #0b0f19; color: #f8fafc; margin: 0; padding: 20px; line-height: 1.7; }
+    .container { max-width: 900px; margin: 0 auto; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 36px; box-shadow: 0 0 40px rgba(56, 189, 248, 0.1); }
+    h1, h2, h3 { color: #38bdf8; }
+    a { color: #38bdf8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .badge { display: inline-block; padding: 4px 12px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 20px; color: #34d399; font-size: 0.8rem; font-weight: bold; margin-bottom: 12px; }
+    .callout { background: #030712; border-left: 4px solid #10b981; padding: 16px; border-radius: 4px; margin: 20px 0; font-family: monospace; font-size: 0.9rem; color: #a7f3d0; }
+    .section-card { background: #030712; border: 1px solid #1e293b; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #1e293b; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 0.85rem; color: #64748b; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Privacy Policy</h1>
-        <p>Effective Date: September 10, 2026</p>
-        <p>OMEGA SOVEREIGN RESEARCH LABS is committed to protecting data sovereignty. We collect zero persistent tracking identifiers, zero third-party profiling data, and adhere strictly to zero-inference local runtime operations.</p>
-        <h2>Data Handling</h2>
-        <p>No user data is exfiltrated or shared with external parties. Any enterprise verification tokens are handled via standard cryptographic channels.</p>
-        <div style="margin-top: 30px; border-top: 1px solid #334155; padding-top: 15px;">
-            <p><a href="index.html">&larr; Back to Home</a> | <a href="portal.html">Developer Portal</a> | <a href="docs.html">API Docs</a> | <a href="research.html">Research</a> | <a href="security.html">Security Policy</a> | <a href="terms.html">Terms of Service</a></p>
-        </div>
+  <div class="container">
+    <div style="margin-bottom: 20px;">
+      <a href="index.html">&larr; Kembali ke Laman Utama</a>
     </div>
+    <div class="badge">PRIVACY PROTOCOL // ZERO-INFERENCE STRICT</div>
+    <h1>Dasar Privasi &amp; Kedaulatan Data</h1>
+    <p style="color: #94a3b8; font-size: 1.05rem;">Prinsip integriti, kedaulatan mutlak, dan perlindungan privasi tanpa inferens pihak ketiga bagi TesseraQS Core Architecture.</p>
+
+    <div class="callout">
+      [STATUS]: PENGUATKUASAAN KEDAULATAN DATA AKTIF 100%<br>
+      [OPERASI]: ZERO TRACKING &bull; ZERO EXFILTRATION &bull; AIR-GAP RESILIENT<br>
+      [PIAWAIAN]: RFC 9116 ATTESTATION VERIFIED
+    </div>
+
+    <div class="section-card">
+      <h2>1. Kedaulatan Data Tanpa Inferens (Zero-Inference Edge)</h2>
+      <p>OMEGA SOVEREIGN LABS komited melindungi kedaulatan digital organisasi. Sistem beroperasi di bawah prinsip pelaksanaan pinggir tempatan (local edge runtime):</p>
+      <ul>
+        <li><strong>Sifar Penjejakan Berterusan:</strong> Tiada kuki penjejak komersial, pengecam profil pihak ketiga, atau telemetry penjejakan tingkah laku pengguna.</li>
+        <li><strong>Sifar Eksfiltrasi Luaran:</strong> Semua data telemetri yang diproses melalui <code>c2_listener.py</code> dihadkan kepada nod berdaulat tempatan tanpa penghantaran kepada pembekal awan luar.</li>
+        <li><strong>Perlindungan Terhadap AI Scraping:</strong> Rangkaian dikawal oleh dasar perlindungan ketat <code>robots.txt</code> yang menyekat bot pengutip data dan model latihan AI luaran secara mandatori.</li>
+      </ul>
+    </div>
+
+    <div class="section-card">
+      <h2>2. Pengesahan Kriptografi &amp; Keselamatan Saluran</h2>
+      <p>Komunikasi telemetri dan intent autonomi dijamin menggunakan piawaian kriptografi termaju:</p>
+      <ul>
+        <li>Tandatangan kedaulatan berasaskan HMAC-SHA256 (<code>X-Sovereign-Signature</code>).</li>
+        <li>Perlindungan anti-replay dengan tetingkap masa (<code>X-Sovereign-Timestamp</code>) dan pengesahan nonce unik (<code>X-Sovereign-Nonce</code>).</li>
+        <li>Penyulitan TLS 1.3 Strict dengan sijil punca amanah RSA-4096 (<code>ca.crt</code>).</li>
+      </ul>
+    </div>
+
+    <div class="section-card">
+      <h2>3. Data Sovereignty &amp; Privacy Statement (English)</h2>
+      <p style="color: #cbd5e1;">OMEGA SOVEREIGN RESEARCH LABS strictly upholds digital sovereignty. We do not harvest, store, or monetize persistent user identities or behavioral profiling data. All verification proofs and intents execute autonomously within sovereign boundaries governed by verifiable zero-knowledge consensus circuits.</p>
+    </div>
+
+    <footer>
+      <div>&copy; 2026 OMEGA SOVEREIGN LABS &mdash; TesseraQS Core Architecture.</div>
+      <div style="display: flex; gap: 15px;">
+        <a href="index.html">Utama</a>
+        <a href="portal.html">Portal Pembangun</a>
+        <a href="security.html">Keselamatan</a>
+        <a href="terms.html">Terma Perkhidmatan</a>
+        <a href="research.html">Penyelidikan</a>
+        <a href="docs.html">Dokumentasi API</a>
+      </div>
+    </footer>
+  </div>
 </body>
 </html>

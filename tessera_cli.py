@@ -25,7 +25,7 @@ def compute_signature(payload_bytes: bytes, secret: str) -> str:
 
 def cmd_health(args):
     """Check health of the C2 Listener node."""
-    url = f"{args.base_url}/health"
+    url = f"{args.base_url}/health/detailed" if getattr(args, "detailed", False) else f"{args.base_url}/health"
     try:
         req = urllib.request.Request(url)
         with urllib.request.urlopen(req, timeout=args.timeout) as resp:
@@ -33,14 +33,42 @@ def cmd_health(args):
             print("==================================================")
             print("🟢 TESSERAQS C2 NODE HEALTH STATUS: ONLINE")
             print("==================================================")
-            print(f"Service      : {data.get('service')}")
-            print(f"Version      : {data.get('version')}")
-            print(f"Node         : {data.get('node')}")
-            print(f"Architecture : {data.get('architecture')}")
-            print(f"Timestamp    : {data.get('timestamp')}")
-            print(f"Uptime (s)   : {data.get('uptime_seconds')}")
+            if getattr(args, "detailed", False):
+                print(json.dumps(data, indent=2))
+            else:
+                print(f"Service      : {data.get('service')}")
+                print(f"Version      : {data.get('version')}")
+                print(f"Node         : {data.get('node')}")
+                print(f"Architecture : {data.get('architecture')}")
+                print(f"Timestamp    : {data.get('timestamp')}")
+                print(f"Uptime (s)   : {data.get('uptime_seconds')}")
     except Exception as err:
         print(f"❌ Error connecting to node health endpoint: {err}", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_ready(args):
+    """Check readiness of the C2 Listener node (Readiness Probe)."""
+    url = f"{args.base_url}/ready"
+    try:
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=args.timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            status = data.get("status")
+            symbol = "🟢" if status == "READY" else "🔴"
+            print("==================================================")
+            print(f"{symbol} TESSERAQS C2 NODE READINESS: {status}")
+            print("==================================================")
+            print(f"Node                   : {data.get('node')}")
+            print(f"Core Artifacts Ready   : {data.get('core_artifacts_ready')}")
+            print(f"Modules Dir Accessible : {data.get('modules_dir_accessible')}")
+            print(f"Timestamp              : {data.get('timestamp')}")
+    except urllib.error.HTTPError as err:
+        err_msg = err.read().decode("utf-8", errors="replace")
+        print(f"❌ HTTP Error {err.code}: {err_msg}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as err:
+        print(f"❌ Error connecting to node readiness endpoint: {err}", file=sys.stderr)
         sys.exit(1)
 
 
@@ -211,7 +239,12 @@ def main():
 
     # Health command
     p_health = subparsers.add_parser("health", parents=[parent_parser], help="Check C2 Listener health status")
+    p_health.add_argument("--detailed", action="store_true", help="Fetch detailed health diagnostics and defense audit")
     p_health.set_defaults(func=cmd_health)
+
+    # Ready command (Readiness probe)
+    p_ready = subparsers.add_parser("ready", parents=[parent_parser], help="Check C2 Listener readiness probe")
+    p_ready.set_defaults(func=cmd_ready)
 
     # Metrics command
     p_metrics = subparsers.add_parser("metrics", parents=[parent_parser], help="Fetch node metrics and stats")

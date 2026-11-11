@@ -230,6 +230,20 @@ class TestC2Listener(unittest.TestCase):
         # Should complete without error when all sovereign files exist
         tessera_cli.cmd_audit(args)
 
+    def test_tessera_cli_health_detailed_and_ready(self):
+        class ArgsDetailed:
+            base_url = self.base_url
+            timeout = 3
+            detailed = True
+
+        class ArgsReady:
+            base_url = self.base_url
+            timeout = 3
+
+        # Both CLI commands should execute successfully without unhandled exceptions
+        tessera_cli.cmd_health(ArgsDetailed())
+        tessera_cli.cmd_ready(ArgsReady())
+
     def test_tessera_cli_audit_detects_missing_file(self):
         # Verify that cmd_audit detects missing defense artifacts (e.g. ca.crt)
         class Args:

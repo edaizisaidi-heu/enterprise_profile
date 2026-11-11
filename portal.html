@@ -53,7 +53,18 @@
     </div>
 
     <div class="card">
-      <h3>2. Metrik Prometheus &amp; Statistik Masa Nyata</h3>
+      <h3>2. Kesiapsiagaan Nodus (Readiness Probe) &amp; Diagnostik Mendalam</h3>
+      <p><span class="endpoint">GET /ready</span> &bull; <span class="endpoint">GET /health/detailed</span></p>
+      <pre># Semakan kesiapsiagaan komponen nod:
+curl -s https://tesseraqs.cloud-ip.cc/ready
+# { "status": "READY", "node": "TELUK_INTAN_EDGE_01", "core_artifacts_ready": true, "modules_dir_accessible": true }
+
+# Diagnostik mendalam 7 artifak pertahanan &amp; konfigurasi anti-replay:
+curl -s https://tesseraqs.cloud-ip.cc/health/detailed</pre>
+    </div>
+
+    <div class="card">
+      <h3>3. Metrik Prometheus &amp; Statistik Masa Nyata</h3>
       <p><span class="endpoint">GET /metrics</span> &bull; <span class="endpoint">GET /telemetry/stats</span></p>
       <pre># Metrik Prometheus format piawai:
 curl -s https://tesseraqs.cloud-ip.cc/metrics
@@ -63,8 +74,8 @@ curl -s https://tesseraqs.cloud-ip.cc/telemetry/stats</pre>
     </div>
 
     <div class="card">
-      <h3>3. Penghantaran Niat Autonomi (Omni-Listener)</h3>
-      <p><span class="endpoint">POST /omni-listener</span> (Pengepala: <code>Content-Type: application/json</code>, <code>X-Sovereign-Signature</code> pilihan)</p>
+      <h3>4. Penghantaran Niat Autonomi (Omni-Listener)</h3>
+      <p><span class="endpoint">POST /omni-listener</span> (Pengepala: <code>Content-Type: application/json</code>, <code>X-Sovereign-Signature</code>, <code>X-Sovereign-Timestamp</code>, <code>X-Sovereign-Nonce</code> pilihan)</p>
       <pre>curl -X POST https://tesseraqs.cloud-ip.cc/omni-listener \
   -H "Content-Type: application/json" \
   -d '{"module": "dev_portal", "directive": "[DIRECTIVE: RECURSIVE SIMULATION]"}'</pre>
@@ -72,17 +83,26 @@ curl -s https://tesseraqs.cloud-ip.cc/telemetry/stats</pre>
 
     <div class="card">
       <h3>🛠️ Penggunaan Alat CLI Rasmi (<code>tessera_cli.py</code>)</h3>
-      <pre># Semakan kesihatan nod
+      <pre># Semakan kesihatan nod &amp; diagnostik mendalam
 python3 tessera_cli.py health
+python3 tessera_cli.py health --detailed
+
+# Semakan kesiapsiagaan nod (Readiness Probe)
+python3 tessera_cli.py ready
 
 # Mengambil metrik telemetri
 python3 tessera_cli.py metrics --format json
+python3 tessera_cli.py metrics --format prometheus
 
 # Menghantar direktif telemetri
 python3 tessera_cli.py send --directive "[DIRECTIVE: RECURSIVE SIMULATION]"
 
-# Audit keselamatan kedaulatan tempatan
-python3 tessera_cli.py audit</pre>
+# Penstriman status telemetri masa nyata
+python3 tessera_cli.py live --interval 1.0 --count 3
+
+# Audit keselamatan kedaulatan tempatan &amp; verifikasi jauh
+python3 tessera_cli.py audit
+python3 tessera_cli.py verify-remote --target-url https://tesseraqs.cloud-ip.cc</pre>
     </div>
 
     <footer>
