@@ -75,6 +75,12 @@ curl -s https://tesseraqs.cloud-ip.cc/telemetry/stats</pre>
       <pre># Semakan kesihatan nod
 python3 tessera_cli.py health
 
+# Diagnostik kesihatan nod mendalam
+python3 tessera_cli.py health --detailed
+
+# Semakan kesiapsiagaan komponen nod (Readiness Probe)
+python3 tessera_cli.py ready
+
 # Mengambil metrik telemetri
 python3 tessera_cli.py metrics --format json
 

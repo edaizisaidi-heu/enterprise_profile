@@ -52,8 +52,14 @@ Sistem jambatan telemetri C2 dan enjin eksekusi niat autonomi bagi **TesseraQS C
 Alat CLI mandiri bersepadu untuk pengurusan operasi dan telemetri nod:
 
 ```bash
-# Semakan kesihatan nod
+# Semakan kesihatan nod (standard)
 python3 tessera_cli.py health
+
+# Diagnostik kesihatan nod mendalam (detailed)
+python3 tessera_cli.py health --detailed
+
+# Semakan kesiapsiagaan komponen nod (Readiness Probe)
+python3 tessera_cli.py ready
 
 # Ambil metrik JSON atau Prometheus
 python3 tessera_cli.py metrics --format json

@@ -25,22 +25,57 @@ def compute_signature(payload_bytes: bytes, secret: str) -> str:
 
 def cmd_health(args):
     """Check health of the C2 Listener node."""
-    url = f"{args.base_url}/health"
+    endpoint = "/health/detailed" if getattr(args, "detailed", False) else "/health"
+    url = f"{args.base_url}{endpoint}"
     try:
         req = urllib.request.Request(url)
         with urllib.request.urlopen(req, timeout=args.timeout) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            print("==================================================")
-            print("🟢 TESSERAQS C2 NODE HEALTH STATUS: ONLINE")
-            print("==================================================")
-            print(f"Service      : {data.get('service')}")
-            print(f"Version      : {data.get('version')}")
-            print(f"Node         : {data.get('node')}")
-            print(f"Architecture : {data.get('architecture')}")
-            print(f"Timestamp    : {data.get('timestamp')}")
-            print(f"Uptime (s)   : {data.get('uptime_seconds')}")
+            if getattr(args, "detailed", False):
+                print("==================================================")
+                print("🟢 TESSERAQS C2 NODE DETAILED HEALTH DIAGNOSTICS")
+                print("==================================================")
+                print(json.dumps(data, indent=2))
+            else:
+                print("==================================================")
+                print("🟢 TESSERAQS C2 NODE HEALTH STATUS: ONLINE")
+                print("==================================================")
+                print(f"Service      : {data.get('service')}")
+                print(f"Version      : {data.get('version')}")
+                print(f"Node         : {data.get('node')}")
+                print(f"Architecture : {data.get('architecture')}")
+                print(f"Timestamp    : {data.get('timestamp')}")
+                print(f"Uptime (s)   : {data.get('uptime_seconds')}")
     except Exception as err:
         print(f"❌ Error connecting to node health endpoint: {err}", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_ready(args):
+    """Check readiness probe of the C2 Listener node."""
+    url = f"{args.base_url}/ready"
+    try:
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=args.timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            status = data.get("status", "UNKNOWN")
+            is_ready = status == "READY"
+            icon = "🟢" if is_ready else "🔴"
+            print("==================================================")
+            print(f"{icon} TESSERAQS C2 NODE READINESS: {status}")
+            print("==================================================")
+            print(f"Node                 : {data.get('node')}")
+            print(f"Core Artifacts Ready : {data.get('core_artifacts_ready')}")
+            print(f"Modules Dir Access   : {data.get('modules_dir_accessible')}")
+            print(f"Timestamp            : {data.get('timestamp')}")
+            if not is_ready:
+                sys.exit(1)
+    except urllib.error.HTTPError as err:
+        err_msg = err.read().decode("utf-8", errors="replace")
+        print(f"❌ Node readiness check failed (HTTP {err.code}): {err_msg}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as err:
+        print(f"❌ Error connecting to node readiness endpoint: {err}", file=sys.stderr)
         sys.exit(1)
 
 
@@ -197,29 +232,35 @@ def cmd_verify_remote(args):
 
 
 def main():
-    # Parent parser for shared options (--base-url, --timeout) to support both global and subcommand flags
-    parent_parser = argparse.ArgumentParser(add_help=False)
-    parent_parser.add_argument("--base-url", default=DEFAULT_BASE_URL, help=f"C2 Base URL (default: {DEFAULT_BASE_URL})")
-    parent_parser.add_argument("--timeout", type=int, default=5, help="Request timeout in seconds (default: 5)")
+    # Subcommand parent parser: use argparse.SUPPRESS for defaults so global flags take effect if set before subcommand
+    sub_parent = argparse.ArgumentParser(add_help=False)
+    sub_parent.add_argument("--base-url", default=argparse.SUPPRESS, help=f"C2 Base URL (default: {DEFAULT_BASE_URL})")
+    sub_parent.add_argument("--timeout", type=int, default=argparse.SUPPRESS, help="Request timeout in seconds (default: 5)")
 
     parser = argparse.ArgumentParser(
-        description="TesseraQS Autonomous Sovereign CLI",
-        parents=[parent_parser]
+        description="TesseraQS Autonomous Sovereign CLI"
     )
+    parser.add_argument("--base-url", default=DEFAULT_BASE_URL, help=f"C2 Base URL (default: {DEFAULT_BASE_URL})")
+    parser.add_argument("--timeout", type=int, default=5, help="Request timeout in seconds (default: 5)")
     parser.add_argument("--version", action="version", version="TesseraQS Sovereign CLI v3.3.0")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Health command
-    p_health = subparsers.add_parser("health", parents=[parent_parser], help="Check C2 Listener health status")
+    p_health = subparsers.add_parser("health", parents=[sub_parent], help="Check C2 Listener health status")
+    p_health.add_argument("--detailed", action="store_true", help="Fetch detailed health diagnostics and artifacts status")
     p_health.set_defaults(func=cmd_health)
 
+    # Ready command
+    p_ready = subparsers.add_parser("ready", parents=[sub_parent], help="Check C2 Listener readiness probe")
+    p_ready.set_defaults(func=cmd_ready)
+
     # Metrics command
-    p_metrics = subparsers.add_parser("metrics", parents=[parent_parser], help="Fetch node metrics and stats")
+    p_metrics = subparsers.add_parser("metrics", parents=[sub_parent], help="Fetch node metrics and stats")
     p_metrics.add_argument("--format", choices=["json", "prometheus"], default="json", help="Output format")
     p_metrics.set_defaults(func=cmd_metrics)
 
     # Send telemetry command
-    p_send = subparsers.add_parser("send", parents=[parent_parser], help="Send telemetry or directive to /omni-listener")
+    p_send = subparsers.add_parser("send", parents=[sub_parent], help="Send telemetry or directive to /omni-listener")
     p_send.add_argument("--directive", required=True, help="Directive string")
     p_send.add_argument("--module", default="tessera_cli", help="Source module name")
     p_send.add_argument("--intent", default="USER_DIRECTIVE", help="Intent descriptor")
@@ -229,17 +270,17 @@ def main():
     p_send.set_defaults(func=cmd_send)
 
     # Audit command
-    p_audit = subparsers.add_parser("audit", parents=[parent_parser], help="Verify local sovereign defense artifacts")
+    p_audit = subparsers.add_parser("audit", parents=[sub_parent], help="Verify local sovereign defense artifacts")
     p_audit.set_defaults(func=cmd_audit)
 
     # Live telemetry monitor command
-    p_live = subparsers.add_parser("live", parents=[parent_parser], help="Stream live telemetry stats from node")
+    p_live = subparsers.add_parser("live", parents=[sub_parent], help="Stream live telemetry stats from node")
     p_live.add_argument("--interval", type=float, default=1.0, help="Poll interval in seconds (default: 1.0)")
     p_live.add_argument("--count", type=int, default=1, help="Number of samples to collect before exit (default: 1, 0 for infinite)")
     p_live.set_defaults(func=cmd_live)
 
     # Verify remote domain command
-    p_remote = subparsers.add_parser("verify-remote", parents=[parent_parser], help="Verify live sovereign attestation on remote host")
+    p_remote = subparsers.add_parser("verify-remote", parents=[sub_parent], help="Verify live sovereign attestation on remote host")
     p_remote.add_argument("--target-url", default="https://tesseraqs.cloud-ip.cc", help="Target domain URL")
     p_remote.set_defaults(func=cmd_verify_remote)
 
