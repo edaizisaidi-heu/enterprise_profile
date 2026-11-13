@@ -451,6 +451,38 @@ class TestC2Listener(unittest.TestCase):
             c2_listener.RATE_LIMIT_RPS = old_rps
             c2_listener.RATE_LIMIT_BUCKETS.clear()
 
+    def test_tessera_cli_ready_and_detailed_health(self):
+        # Test cmd_health with and without --detailed
+        class ArgsHealthStandard:
+            base_url = self.base_url
+            timeout = 3
+            detailed = False
+        tessera_cli.cmd_health(ArgsHealthStandard())
+
+        class ArgsHealthDetailed:
+            base_url = self.base_url
+            timeout = 3
+            detailed = True
+        tessera_cli.cmd_health(ArgsHealthDetailed())
+
+        # Test cmd_ready
+        class ArgsReady:
+            base_url = self.base_url
+            timeout = 3
+        tessera_cli.cmd_ready(ArgsReady())
+
+        # Test CLI main parser with ready and health --detailed
+        import sys
+        old_argv = sys.argv
+        try:
+            sys.argv = ["tessera_cli.py", "--base-url", self.base_url, "ready"]
+            tessera_cli.main()
+
+            sys.argv = ["tessera_cli.py", "--base-url", self.base_url, "health", "--detailed"]
+            tessera_cli.main()
+        finally:
+            sys.argv = old_argv
+
     def test_tessera_cli_live_and_remote_commands(self):
         class ArgsLive:
             base_url = self.base_url
