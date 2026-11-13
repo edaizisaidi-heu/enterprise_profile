@@ -90,6 +90,12 @@ python3 tessera_cli.py health --detailed
 # Semakan kesiapsiagaan nod (Readiness Probe)
 python3 tessera_cli.py ready
 
+# Diagnostik kesihatan nod mendalam
+python3 tessera_cli.py health --detailed
+
+# Semakan kesiapsiagaan komponen nod (Readiness Probe)
+python3 tessera_cli.py ready
+
 # Mengambil metrik telemetri
 python3 tessera_cli.py metrics --format json
 python3 tessera_cli.py metrics --format prometheus
