@@ -79,6 +79,31 @@ def cmd_ready(args):
         sys.exit(1)
 
 
+def cmd_ready(args):
+    """Check readiness of the C2 Listener node (Readiness Probe)."""
+    url = f"{args.base_url}/ready"
+    try:
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=args.timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            status = data.get("status")
+            symbol = "🟢" if status == "READY" else "🔴"
+            print("==================================================")
+            print(f"{symbol} TESSERAQS C2 NODE READINESS: {status}")
+            print("==================================================")
+            print(f"Node                   : {data.get('node')}")
+            print(f"Core Artifacts Ready   : {data.get('core_artifacts_ready')}")
+            print(f"Modules Dir Accessible : {data.get('modules_dir_accessible')}")
+            print(f"Timestamp              : {data.get('timestamp')}")
+    except urllib.error.HTTPError as err:
+        err_msg = err.read().decode("utf-8", errors="replace")
+        print(f"❌ HTTP Error {err.code}: {err_msg}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as err:
+        print(f"❌ Error connecting to node readiness endpoint: {err}", file=sys.stderr)
+        sys.exit(1)
+
+
 def cmd_metrics(args):
     """Retrieve metrics or telemetry stats from C2 Listener."""
     if args.format == "prometheus":

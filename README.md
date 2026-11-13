@@ -54,6 +54,10 @@ Alat CLI mandiri bersepadu untuk pengurusan operasi dan telemetri nod:
 ```bash
 # Semakan kesihatan nod (standard)
 python3 tessera_cli.py health
+python3 tessera_cli.py health --detailed
+
+# Semakan kesiapsiagaan komponen nod (Readiness Probe)
+python3 tessera_cli.py ready
 
 # Diagnostik kesihatan nod mendalam (detailed)
 python3 tessera_cli.py health --detailed
